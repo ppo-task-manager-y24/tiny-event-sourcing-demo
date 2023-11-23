@@ -5,51 +5,36 @@ import ru.quipy.domain.Event
 import java.util.*
 
 const val PROJECT_CREATED_EVENT = "PROJECT_CREATED_EVENT"
-const val TAG_CREATED_EVENT = "TAG_CREATED_EVENT"
-const val TAG_ASSIGNED_TO_TASK_EVENT = "TAG_ASSIGNED_TO_TASK_EVENT"
-const val TASK_CREATED_EVENT = "TASK_CREATED_EVENT"
+const val PROJECT_UPDATED_EVENT = "PROJECT_UPDATED_EVENT"
+const val PROJECT_PARTICIPANT_ADDED_EVENT = "PROJECT_PARTICIPANT_ADDED_EVENT"
 
 // API
 @DomainEvent(name = PROJECT_CREATED_EVENT)
 class ProjectCreatedEvent(
     val projectId: UUID,
-    val title: String,
-    val creatorId: String,
+    val projectName: String,
+    val projectOwner: UUID,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
     name = PROJECT_CREATED_EVENT,
     createdAt = createdAt,
 )
 
-@DomainEvent(name = TAG_CREATED_EVENT)
-class TagCreatedEvent(
+@DomainEvent(name = PROJECT_UPDATED_EVENT)
+class ProjectUpdatedEvent(
     val projectId: UUID,
-    val tagId: UUID,
-    val tagName: String,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
-    name = TAG_CREATED_EVENT,
+    name = PROJECT_UPDATED_EVENT,
     createdAt = createdAt,
 )
 
-@DomainEvent(name = TASK_CREATED_EVENT)
-class TaskCreatedEvent(
+@DomainEvent(name = PROJECT_PARTICIPANT_ADDED_EVENT)
+class ProjectParticipantAddedEvent(
     val projectId: UUID,
-    val taskId: UUID,
-    val taskName: String,
+    val participantId: UUID,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
-    name = TASK_CREATED_EVENT,
-    createdAt = createdAt
-)
-
-@DomainEvent(name = TAG_ASSIGNED_TO_TASK_EVENT)
-class TagAssignedToTaskEvent(
-    val projectId: UUID,
-    val taskId: UUID,
-    val tagId: UUID,
-    createdAt: Long = System.currentTimeMillis(),
-) : Event<ProjectAggregate>(
-    name = TAG_ASSIGNED_TO_TASK_EVENT,
-    createdAt = createdAt
+    name = PROJECT_PARTICIPANT_ADDED_EVENT,
+    createdAt = createdAt,
 )
