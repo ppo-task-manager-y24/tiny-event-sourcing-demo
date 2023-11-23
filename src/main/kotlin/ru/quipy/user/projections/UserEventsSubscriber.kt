@@ -1,10 +1,10 @@
-package ru.quipy.user.eda.projections
+package ru.quipy.user.projections
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ru.quipy.streams.AggregateSubscriptionsManager
-import ru.quipy.user.eda.api.UserAggregate
+import ru.quipy.user.api.UserAggregate
 import javax.annotation.PostConstruct
 
 @Service
