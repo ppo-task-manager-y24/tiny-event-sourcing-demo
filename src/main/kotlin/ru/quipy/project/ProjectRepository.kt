@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository
 import ru.quipy.user.UserEntity
 
 @Repository
-interface ProjectRepository : MongoRepository<UserEntity, String> {
+interface ProjectRepository : MongoRepository<ProjectEntity, String> {
 }
