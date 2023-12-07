@@ -1,27 +1,33 @@
 package ru.quipy.task.eda.logic
 
-import ru.quipy.task.eda.api.TaskAggregate
-import ru.quipy.task.eda.logic.TaskAggregateState
-
-import ru.quipy.task.eda.api.TaskCreatedEvent
-import ru.quipy.task.eda.api.TaskUpdatedEvent
-import ru.quipy.task.eda.api.TaskAssignedEvent
+import ru.quipy.task.eda.api.*
+import ru.quipy.domain.Event
 import java.util.*
 
-fun TaskAggregateState.create(
-    id: UUID, taskName: String
-): TaskCreatedEvent {
-    return TaskCreatedEvent(id, taskName)
+fun TaskAggregateState.create(name: String, description: String, projectId: UUID, statusId: UUID): TaskCreatedEvent {
+    return TaskCreatedEvent(
+            taskId = UUID.randomUUID(),
+            taskName = name,
+            taskDescription = description,
+            projectId = projectId,
+            statusId = statusId
+    )
 }
 
-fun TaskAggregateState.update(
-    id: UUID, newTaskName: String
-): TaskUpdatedEvent {
-    return TaskUpdatedEvent(id, newTaskName)
+fun TaskAggregateState.rename(name: String): List<Event<TaskAggregate>> {
+    return ArrayList(
+            listOf(
+                    TaskUpdatedEvent(this.getId()),
+                    TaskNameChangedEvent(this.getId(), name)
+            )
+    )
 }
 
-fun TaskAggregateState.assignTask(
-    userId: UUID, taskId: UUID
-): TaskAssignedEvent {
-    return TaskAssignedEvent(userId, taskId)
+fun TaskAggregateState.addExecutor(id: UUID): List<Event<TaskAggregate>> {
+    return ArrayList(
+            listOf(
+                    TaskUpdatedEvent(this.getId()),
+                    TaskExecutorAddedEvent(this.getId(), id)
+            )
+    )
 }

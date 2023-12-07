@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.core.EventSourcingServiceFactory
+import ru.quipy.logic.ProjectAggregateState
+import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import ru.quipy.user.eda.api.UserAggregate
@@ -16,13 +18,10 @@ import javax.annotation.PostConstruct
 @Configuration
 class ProjectConfig {
 
-    private val logger = LoggerFactory.getLogger(UserConfig::class.java)
+    private val logger = LoggerFactory.getLogger(ProjectConfig::class.java)
 
     @Autowired
     private lateinit var subscriptionsManager: AggregateSubscriptionsManager
-
-    @Autowired
-    private lateinit var projectEventSubscriber: AnnotationBasedProjectEventSubscriber
 
     @Autowired
     private lateinit var eventStreamManager: AggregateEventStreamManager
@@ -31,11 +30,11 @@ class ProjectConfig {
     private lateinit var eventSourcingServiceFactory: EventSourcingServiceFactory
 
     @Bean
-    fun userEsService() = eventSourcingServiceFactory.create<UUID, UserAggregate, UserAggregateState>()
+    fun projectEsService() = eventSourcingServiceFactory.create<UUID, ProjectAggregate, ProjectAggregateState>()
 
     @PostConstruct
     fun init() {
-        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
+//        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
 
         eventStreamManager.maintenance {
             onRecordHandledSuccessfully { streamName, eventName ->

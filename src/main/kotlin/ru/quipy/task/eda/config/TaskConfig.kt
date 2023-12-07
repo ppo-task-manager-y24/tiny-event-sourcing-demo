@@ -31,7 +31,7 @@ class TaskConfig {
     private lateinit var eventSourcingServiceFactory: EventSourcingServiceFactory
 
     @Bean
-    fun userEsService() = eventSourcingServiceFactory.create<UUID, TaskAggregate, TaskAggregateState>()
+    fun taskEsService() = eventSourcingServiceFactory.create<UUID, TaskAggregate, TaskAggregateState>()
 
     @PostConstruct
     fun init() {
