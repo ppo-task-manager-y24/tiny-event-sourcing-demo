@@ -30,12 +30,16 @@ class StatusServiceImpl(
 ) : StatusService
 {
     override fun createStatus(data: StatusCreate): StatusCreatedEvent {
-        val status: StatusEntity? = statusRepository.findByName(data.statusName)
+        var status: StatusEntity? = null
+
+        try {
+            status = getByName(data.statusName)
+        } catch(e: Exception) {
+            //skip if exists
+        }
 
         if (status != null) {
-            if (status.projectId == data.projectId) {
-                throw ResponseStatusException(HttpStatus.CONFLICT, "status already exist.")
-            }
+            throw ResponseStatusException(HttpStatus.CONFLICT, "status already exist.")
         }
 
         val statusEntity = statusRepository.save(StatusEntity(
@@ -64,11 +68,7 @@ class StatusServiceImpl(
         val states = listOf<StatusAggregateState>()
 
         statuses.forEach {
-            val state = statusEsService.getState(it.statusId)
-
-            if (state != null && !state.isDeleted()) {
-                states.plus(state)
-            }
+            states.plus(statusEsService.getState(it.statusId))
         }
 
         return states
@@ -79,10 +79,16 @@ class StatusServiceImpl(
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
         status.isDeleted = true
+        status.updatedAt = System.currentTimeMillis()
         statusRepository.save(status)
 
         return statusEsService.update(statusId) {
             it.delete(status.projectId)
         }
+    }
+
+    private fun getByName(statusName: String): StatusEntity {
+        return statusRepository.findByName(statusName)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
     }
 }

@@ -13,4 +13,6 @@ class StatusEntity(projectId: UUID, name: String, color: String) {
     lateinit var statusName: String
     lateinit var color: String
     var isDeleted: Boolean = false
+    var createdAt: Long = System.currentTimeMillis()
+    var updatedAt: Long = System.currentTimeMillis()
 }
