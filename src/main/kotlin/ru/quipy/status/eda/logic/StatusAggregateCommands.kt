@@ -1,16 +1,23 @@
 package ru.quipy.status.eda.logic
 
-import ru.quipy.status.dto.StatusCreate
 import ru.quipy.status.eda.api.StatusCreatedEvent
 import ru.quipy.status.eda.api.StatusDeletedEvent
 import java.util.*
 
 fun StatusAggregateState.create(
-        status: StatusCreate
+        projectId: UUID,
+        statusId: UUID,
+        statusName: String,
+        statusColor: String
 ): StatusCreatedEvent {
-    return StatusCreatedEvent(UUID.randomUUID(), status.statusName, status.color)
+    return StatusCreatedEvent(
+            projectId,
+            statusId,
+            statusName,
+            statusColor
+    )
 }
 
-fun StatusAggregateState.delete(): StatusDeletedEvent {
-    return StatusDeletedEvent(getId())
+fun StatusAggregateState.delete(projectId: UUID): StatusDeletedEvent {
+    return StatusDeletedEvent(projectId, getId())
 }
