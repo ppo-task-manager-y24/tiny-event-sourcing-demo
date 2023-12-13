@@ -78,6 +78,9 @@ class StatusServiceImpl(
         val status = statusRepository.findById(statusId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
+        status.isDeleted = true
+        statusRepository.save(status)
+
         return statusEsService.update(statusId) {
             it.delete(status.projectId)
         }

@@ -12,4 +12,5 @@ class StatusEntity(projectId: UUID, name: String, color: String) {
     lateinit var projectId: UUID
     lateinit var statusName: String
     lateinit var color: String
+    var isDeleted: Boolean = false
 }

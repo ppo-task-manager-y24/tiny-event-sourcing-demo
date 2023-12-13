@@ -7,12 +7,12 @@ import java.util.*
 
 @Repository
 interface StatusRepository : MongoRepository<StatusEntity, String> {
-    @Query("{projectId: ?0}")
+    @Query("{projectId: ?0, isDeleted: False}")
     fun findByProject(projectId: UUID): List<StatusEntity>?
 
-    @Query("{statusName:  ?0}")
+    @Query("{statusName:  ?0, isDeleted: False}")
     fun findByName(statusName: String): StatusEntity?
 
-    @Query("{statusId:  ?0}")
+    @Query("{statusId:  ?0, isDeleted:  False}")
     fun findById(statusId: UUID): StatusEntity?
 }
