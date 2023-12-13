@@ -14,13 +14,13 @@ import ru.quipy.status.eda.logic.delete
 import java.util.*
 
 interface StatusService {
-    fun createStatus(projectId: UUID, data: StatusCreate): StatusCreatedEvent
+    fun createStatus(data: StatusCreate): StatusCreatedEvent
 
     fun getStatus(statusId: UUID): StatusAggregateState?
 
     fun getStatuses(projectId: UUID): List<StatusAggregateState>
 
-    fun deleteStatus(projectId: UUID, statusId: UUID): StatusDeletedEvent
+    fun deleteStatus(statusId: UUID): StatusDeletedEvent
 }
 
 @Service
@@ -29,17 +29,19 @@ class StatusServiceImpl(
         private val statusEsService: EventSourcingService<UUID, StatusAggregate, StatusAggregateState>
 ) : StatusService
 {
-    override fun createStatus(projectId: UUID, data: StatusCreate): StatusCreatedEvent {
+    override fun createStatus(data: StatusCreate): StatusCreatedEvent {
         val status: StatusEntity? = statusRepository.findByName(data.statusName)
 
         if (status != null) {
-            if (status.projectId == projectId) {
+            if (status.projectId == data.projectId) {
                 throw ResponseStatusException(HttpStatus.CONFLICT, "status already exist.")
             }
         }
 
         val statusEntity = statusRepository.save(StatusEntity(
-                            projectId, data.statusName, data.color)
+                data.projectId,
+                data.statusName,
+                data.color)
         )
 
         return statusEsService.create {
@@ -62,20 +64,22 @@ class StatusServiceImpl(
         val states = listOf<StatusAggregateState>()
 
         statuses.forEach {
-            states.plus(statusEsService.getState(it.statusId))
+            val state = statusEsService.getState(it.statusId)
+
+            if (state != null && !state.isDeleted()) {
+                states.plus(state)
+            }
         }
 
         return states
     }
 
-    override fun deleteStatus(projectId: UUID, statusId: UUID): StatusDeletedEvent {
+    override fun deleteStatus(statusId: UUID): StatusDeletedEvent {
         val status = statusRepository.findById(statusId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
-        statusRepository.delete(status)
-
         return statusEsService.update(statusId) {
-            it.delete(projectId)
+            it.delete(status.projectId)
         }
     }
 }

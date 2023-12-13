@@ -11,9 +11,13 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
     private lateinit var statusId: UUID
     private lateinit var statusName: String
     private lateinit var color: String
-    private var deleted: Boolean = false
+    private var isDeleted: Boolean = false
+    var createdAt: Long = System.currentTimeMillis()
+    var updatedAt: Long = System.currentTimeMillis()
 
     override fun getId() = statusId
+
+    fun isDeleted() = isDeleted
 
     @StateTransitionFunc
     fun statusCreatedApply(event: StatusCreatedEvent) {
@@ -24,6 +28,7 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
 
     @StateTransitionFunc
     fun statusDeletedApply() {
-        deleted = true
+        isDeleted = true
+        updatedAt = System.currentTimeMillis()
     }
 }

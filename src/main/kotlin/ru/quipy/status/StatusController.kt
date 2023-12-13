@@ -12,10 +12,9 @@ import java.util.*
 class StatusController(
         private val statusEsService: StatusService
 ) {
-    @PostMapping("/{projectId}")
-    fun createStatus(@PathVariable projectId: UUID,
-                     @RequestBody req: StatusCreate): StatusCreatedEvent {
-        return statusEsService.createStatus(projectId, req)
+    @PostMapping
+    fun createStatus(@RequestBody req: StatusCreate): StatusCreatedEvent {
+        return statusEsService.createStatus(req)
     }
 
     @GetMapping("/{statusId}")
@@ -23,14 +22,13 @@ class StatusController(
         return statusEsService.getStatus(statusId)
     }
 
-    @GetMapping("/{projectId}/statuses")
+    @GetMapping("/{projectId}")
     fun getStatusesList(@PathVariable projectId: UUID): List<StatusAggregateState>? {
         return statusEsService.getStatuses(projectId)
     }
 
-    @PostMapping("/{projectId}/{statusId}")
-    fun deleteStatus(@PathVariable projectId: UUID,
-                     @PathVariable statusId: UUID): StatusDeletedEvent {
-        return statusEsService.deleteStatus(projectId, statusId)
+    @PostMapping("/{statusId}")
+    fun deleteStatus(@PathVariable statusId: UUID): StatusDeletedEvent {
+        return statusEsService.deleteStatus(statusId)
     }
 }
