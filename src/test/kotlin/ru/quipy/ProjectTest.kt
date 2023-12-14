@@ -36,7 +36,7 @@ class ProjectTest {
     }
 
     @Autowired
-    private lateinit var projectService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
+    private lateinit var projectService: ProjectService
 
     @Autowired
     private lateinit var projectViewService: ProjectViewService
@@ -44,27 +44,5 @@ class ProjectTest {
     @Test
     fun createProject() {
         val id = UUID.randomUUID()
-
-        projectService.create {
-            it.create(
-                    id,
-                    "title",
-                    UUID.randomUUID())
-        }
-
-//        projectService.createOne(ProjectCreate(title ="title", ownerId = UUID.randomUUID(), id = id))
-//        projectService.createOne(ProjectCreate(title ="title", ownerId = UUID.randomUUID(), id = UUID.randomUUID()))
-//        try {
-//            val project = projectViewService.getOne(id)
-//            Assertions.assertNotNull(project)
-//            if (project != null) {
-//                println("sdfdsf: ${project.name}")
-//                println("sdffff: ${project.id}")
-//                Assertions.assertEquals(project.name, "title")
-//            }
-//        }
-//        catch (e: Exception) {
-//            Assertions.assertTrue(false)
-//        }
     }
 }

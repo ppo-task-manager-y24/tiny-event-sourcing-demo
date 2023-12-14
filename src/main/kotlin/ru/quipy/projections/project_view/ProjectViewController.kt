@@ -8,7 +8,7 @@ import ru.quipy.project.dto.ProjectModel
 import java.util.*
 
 @RestController
-@RequestMapping("/projects")
+@RequestMapping("/projects-view")
 class ProjectViewController(
         val projectViewService: ProjectViewService
 ) {
