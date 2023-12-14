@@ -20,6 +20,7 @@ class UserController(
 
     @PostMapping
     fun register(@RequestBody request: UserRegister): UserAggregateState? {
+        userService.checkAvailableUsername(request.username)
         val event = userEsService.create { it.create(
             UUID.randomUUID(),
             request.username,

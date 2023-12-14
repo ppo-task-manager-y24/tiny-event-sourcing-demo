@@ -18,6 +18,7 @@ import java.util.*
 
 interface UserService {
     fun createOne(data: UserRegister, userId: UUID): UserModel
+    fun checkAvailableUsername(username: String)
     fun getOneByUsername(username: String): UserModel
     fun logIn(data: UserLogin): UserModel
     fun addProject(userId: UUID, projectId: UUID): UserModel
@@ -32,21 +33,24 @@ class UserServiceImpl(
 ): UserService {
 
     override fun createOne(data: UserRegister, userId: UUID): UserModel {
-        var foundUser: UserModel? = null
-        try {
-            foundUser = getOneByUsername(data.username)
-        } catch (e: Exception) {
-            // skip if exists
-        }
-        if (foundUser != null) throw ResponseStatusException(HttpStatus.CONFLICT, "user already exists")
+        checkAvailableUsername(data.username)
         val dataEntity = data.toEntity()
         dataEntity.userId = userId
         val userEntity = userRepository.save(dataEntity)
         return userEntity.toModel()
     }
 
+    override fun checkAvailableUsername(username: String) {
+        var foundUser: UserModel? = null
+        try {
+            foundUser = getOneByUsername(username)
+        } catch (e: Exception) {
+            // skip if exists
+        }
+        if (foundUser != null) throw ResponseStatusException(HttpStatus.CONFLICT, "user already exists")
+    }
     fun getOne(userId: UUID): UserEntity {
-        return this.userRepository.findByIdOrNull(userId.toString())
+        return this.userRepository.findByIdOrNull(userId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user not found")
     }
 
@@ -82,7 +86,7 @@ class UserServiceImpl(
                     userId = null,
                     username = this.username,
                     realName = this.realName,
-                    password = BCryptPasswordEncoder().encode(this.password)
+                    password = this.password
             )
 
     fun UserEntity.toModel(): UserModel = kotlin.runCatching {
