@@ -14,7 +14,8 @@ data class ProjectViewEntity(
         var name: String,
         var ownerId: UUID,
         var createdAt: Long = System.currentTimeMillis(),
-        var updatedAt: Long = System.currentTimeMillis()
+        var updatedAt: Long = System.currentTimeMillis(),
+        var tasks: MutableList<UUID> = mutableListOf()
 )
 
 fun ProjectCreate.toEntity(): ProjectViewEntity =
@@ -31,5 +32,6 @@ fun ProjectModel.toEntity(): ProjectViewEntity =
                 ownerId = this.ownerId,
                 participants = this.participants,
                 createdAt = this.createdAt,
-                updatedAt = this.updatedAt
+                updatedAt = this.updatedAt,
+                tasks = this.tasks
         )

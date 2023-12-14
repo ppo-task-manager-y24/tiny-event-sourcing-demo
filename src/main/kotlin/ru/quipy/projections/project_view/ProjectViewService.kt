@@ -5,7 +5,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
-import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel
 import java.util.*
@@ -34,6 +33,17 @@ class ProjectViewService(
         projectViewRepository.save(projectModel.toEntity())
     }
 
+    fun addTask(projectId: UUID, taskId: UUID) {
+        val projectModel = getOne(projectId)
+        projectModel.tasks.add(taskId)
+        projectViewRepository.save(projectModel.toEntity())
+    }
+
+    fun getAllTasks(projectId: UUID) : MutableList<UUID> {
+        val projectModel = getOne(projectId)
+        return projectModel.tasks
+    }
+
     fun ProjectViewEntity.toModel(): ProjectModel = kotlin.runCatching {
         ProjectModel(
                 id = this.id,
@@ -41,7 +51,8 @@ class ProjectViewService(
                 name = this.name,
                 ownerId = this.ownerId,
                 createdAt = this.createdAt,
-                updatedAt = this.updatedAt
+                updatedAt = this.updatedAt,
+                tasks = this.tasks
         )
     }.getOrElse { _ -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "some fields are missing") }
 }
