@@ -11,25 +11,25 @@ import ru.quipy.project.eda.logic.addUser
 import ru.quipy.project.eda.logic.create
 import java.util.*
 
-@RestController
-@RequestMapping("/projects")
-class ProjectController(
-        val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
-) {
-    @PostMapping("/{title}")
-    fun createProject(@PathVariable title: String, @RequestParam ownerId: UUID): ProjectCreatedEvent {
-        return projectEsService.create { it.create(UUID.randomUUID(), title, ownerId) }
-    }
-
-    @GetMapping("/{id}")
-    fun getProject(@PathVariable id: UUID): ProjectAggregateState? {
-        return projectEsService.getState(id)
-    }
-
-    @PostMapping("/{id}/{userId}")
-    fun addUserToProject(@PathVariable id: UUID, @PathVariable userId: UUID): List<Event<ProjectAggregate>> {
-        return projectEsService.updateSerial(id) {
-            it.addUser(userId)
-        }
-    }
-}
+//@RestController
+//@RequestMapping("/projects")
+//class ProjectController(
+//        val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
+//) {
+//    @PostMapping("/{title}")
+//    fun createProject(@PathVariable title: String, @RequestParam ownerId: UUID): ProjectCreatedEvent {
+//        return projectEsService.create { it.create(UUID.randomUUID(), title, ownerId) }
+//    }
+//
+//    @GetMapping("/{id}")
+//    fun getProject(@PathVariable id: UUID): ProjectAggregateState? {
+//        return projectEsService.getState(id)
+//    }
+//
+//    @PostMapping("/{id}/{userId}")
+//    fun addUserToProject(@PathVariable id: UUID, @PathVariable userId: UUID): List<Event<ProjectAggregate>> {
+//        return projectEsService.updateSerial(id) {
+//            it.addUser(userId)
+//        }
+//    }
+//}

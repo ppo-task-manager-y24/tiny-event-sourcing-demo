@@ -1,5 +1,6 @@
 package ru.quipy.project
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.quipy.core.EventSourcingService
 import ru.quipy.domain.Event
@@ -15,10 +16,13 @@ import java.util.*
 class ProjectService(
         private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>) {
 
+    private val logger = LoggerFactory.getLogger(ProjectService::class.java)
+
     fun createOne(data: ProjectCreate): ProjectCreatedEvent {
+        logger.error("createOne")
         return projectEsService.create {
             it.create(
-                    UUID.randomUUID(),
+                    data.id,
                     data.title,
                     data.ownerId)
         }

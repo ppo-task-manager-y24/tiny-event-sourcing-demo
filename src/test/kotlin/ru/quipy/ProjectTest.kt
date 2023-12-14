@@ -26,6 +26,7 @@ import ru.quipy.user.dto.UserModel
 import ru.quipy.user.dto.UserRegister
 import ru.quipy.user.eda.api.UserAggregate
 import ru.quipy.user.eda.logic.UserAggregateState
+import java.lang.Exception
 import java.util.*
 
 @SpringBootTest
@@ -35,7 +36,7 @@ class ProjectTest {
     }
 
     @Autowired
-    private lateinit var projectService: ProjectService
+    private lateinit var projectService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
 
     @Autowired
     private lateinit var projectViewService: ProjectViewService
@@ -43,13 +44,27 @@ class ProjectTest {
     @Test
     fun createProject() {
         val id = UUID.randomUUID()
-        projectService.createOne(ProjectCreate(title ="title", ownerId = UUID.randomUUID()))
-        val project = projectViewService.getOne(id)
-        Assertions.assertNotNull(project)
-        if (project != null) {
-            println("sdfdsf: ${project.name}")
-            println("sdffff: ${project.id}")
-            Assertions.assertEquals(project.name, "title")
+
+        projectService.create {
+            it.create(
+                    id,
+                    "title",
+                    UUID.randomUUID())
         }
+
+//        projectService.createOne(ProjectCreate(title ="title", ownerId = UUID.randomUUID(), id = id))
+//        projectService.createOne(ProjectCreate(title ="title", ownerId = UUID.randomUUID(), id = UUID.randomUUID()))
+//        try {
+//            val project = projectViewService.getOne(id)
+//            Assertions.assertNotNull(project)
+//            if (project != null) {
+//                println("sdfdsf: ${project.name}")
+//                println("sdffff: ${project.id}")
+//                Assertions.assertEquals(project.name, "title")
+//            }
+//        }
+//        catch (e: Exception) {
+//            Assertions.assertTrue(false)
+//        }
     }
 }

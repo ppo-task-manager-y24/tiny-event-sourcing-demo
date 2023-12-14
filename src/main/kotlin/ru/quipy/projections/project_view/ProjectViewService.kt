@@ -1,9 +1,11 @@
 package ru.quipy.projections.project_view
 
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
+import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel
 import java.util.*
@@ -12,7 +14,10 @@ import java.util.*
 class ProjectViewService(
         private val projectViewRepository: ProjectViewRepository) {
 
+    private val logger = LoggerFactory.getLogger(ProjectViewService::class.java)
+
     fun createOne(data: ProjectCreate): ProjectModel {
+        logger.error("createOne1")
         val projectEntity = projectViewRepository.save(data.toEntity())
         return projectEntity.toModel()
     }
@@ -24,8 +29,9 @@ class ProjectViewService(
     }
 
     fun addUser(projectId: UUID, userId: UUID) {
-        val projectEntity = getOne(projectId)
-        projectEntity.participants.add(userId)
+        val projectModel = getOne(projectId)
+        projectModel.participants.add(userId)
+        projectViewRepository.save(projectModel.toEntity())
     }
 
     fun ProjectViewEntity.toModel(): ProjectModel = kotlin.runCatching {
