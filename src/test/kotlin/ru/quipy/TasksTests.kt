@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.server.ResponseStatusException
 import ru.quipy.domain.Event
+import ru.quipy.project.dto.ProjectModel
 import ru.quipy.task.eda.TaskService
 import ru.quipy.task.dto.TaskCreate
 import ru.quipy.task.eda.api.TaskAggregate
@@ -45,6 +46,22 @@ class TasksTests {
     @Autowired
     lateinit var taskEsService: TaskService
 
+    @Autowired
+    lateinit var mongoTemplate: MongoTemplate
+
+    @BeforeEach
+    fun cleanDatabase() {
+        try {
+            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getOne(id)!!.getId())),
+                ProjectModel::class.java)
+        } catch (e: ResponseStatusException) {
+            if (e.status != HttpStatus.NOT_FOUND)
+            {
+                throw e
+            }
+        }
+    }
+    
     @Test
     fun createNewTask() {
         var state: TaskAggregateState? = null
