@@ -4,6 +4,7 @@ import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
 import ru.quipy.status.eda.api.StatusAggregate
 import ru.quipy.status.eda.api.StatusCreatedEvent
+import ru.quipy.status.eda.api.StatusDeletedEvent
 import java.util.UUID
 
 
@@ -27,7 +28,7 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
     }
 
     @StateTransitionFunc
-    fun statusDeletedApply() {
+    fun statusDeletedApply(event: StatusDeletedEvent) {
         isDeleted = true
         updatedAt = System.currentTimeMillis()
     }

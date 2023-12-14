@@ -13,10 +13,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.server.ResponseStatusException
 import ru.quipy.user.UserEntity
+import ru.quipy.user.UserService
 import ru.quipy.user.UserServiceImpl
 import ru.quipy.user.dto.UserLogin
 import ru.quipy.user.dto.UserModel
 import ru.quipy.user.dto.UserRegister
+import java.util.*
 
 @SpringBootTest
 class UserTests {
@@ -43,7 +45,7 @@ class UserTests {
 	}
 
 	@Autowired
-	lateinit var userEsService: UserServiceImpl
+	lateinit var userEsService: UserService
 
 	@Autowired
 	lateinit var mongoTemplate: MongoTemplate
@@ -51,7 +53,7 @@ class UserTests {
 	@BeforeEach
 	fun cleanDatabase() {
 		try {
-			mongoTemplate.remove(Query.query(Criteria.where("userId").`is`(userEsService.getOne(username).userId)),
+			mongoTemplate.remove(Query.query(Criteria.where("userId").`is`(userEsService.getOneByUsername(username).userId)),
 							UserEntity::class.java)
 		} catch (e: ResponseStatusException) {
 			if (e.status != HttpStatus.NOT_FOUND)
@@ -66,7 +68,7 @@ class UserTests {
 		var userModel: UserModel? = null
 
 		Assertions.assertDoesNotThrow( {
-			userModel = userEsService.createOne(registerDTO)
+			userModel = userEsService.createOne(registerDTO, UUID.randomUUID())
 		}, "can't create new user")
 
 		Assertions.assertAll(
@@ -80,12 +82,12 @@ class UserTests {
 	@Test
 	fun registerExistingUser() {
 		Assertions.assertDoesNotThrow( {
-			userEsService.createOne(registerDTO)
+			userEsService.createOne(registerDTO, UUID.randomUUID())
 		}, "can't create new user")
 
 		Assertions.assertEquals(
 				Assertions.assertThrows(ResponseStatusException::class.java) {
-					userEsService.createOne(registerDTO) }.status,
+					userEsService.createOne(registerDTO, UUID.randomUUID()) }.status,
 				HttpStatus.CONFLICT, "create user with existing username"
 		)
 	}
@@ -93,7 +95,7 @@ class UserTests {
 	@Test
 	fun loginUser() {
 		Assertions.assertDoesNotThrow( {
-			userEsService.createOne(registerDTO)
+			userEsService.createOne(registerDTO, UUID.randomUUID())
 		}, "can't create new user")
 		Assertions.assertDoesNotThrow( {
 			userEsService.logIn(loginDTO)
@@ -103,7 +105,7 @@ class UserTests {
 	@Test
 	fun loginWithWrongCredentials() {
 		Assertions.assertDoesNotThrow {
-			userEsService.createOne(registerDTO)
+			userEsService.createOne(registerDTO, UUID.randomUUID())
 		}
 
 		Assertions.assertAll(
@@ -131,11 +133,11 @@ class UserTests {
 		var sameUserModel: UserModel? = null
 
 		Assertions.assertDoesNotThrow( {
-			userModel = userEsService.createOne(registerDTO)
+			userModel = userEsService.createOne(registerDTO, UUID.randomUUID())
 		}, "can't create new user")
 
 		Assertions.assertDoesNotThrow( {
-			sameUserModel = userEsService.getOne(userModel!!.username)
+			sameUserModel = userEsService.getOneByUsername(userModel!!.username)
 		}, "can't find created user")
 
 		Assertions.assertEquals(userModel, sameUserModel, "created user doesn't exist")
@@ -144,12 +146,12 @@ class UserTests {
 	@Test
 	fun getNonExistingUser() {
 		Assertions.assertDoesNotThrow( {
-			userEsService.createOne(registerDTO)
+			userEsService.createOne(registerDTO, UUID.randomUUID())
 		}, "can't create new user")
 
 		Assertions.assertEquals(
 				Assertions.assertThrows(ResponseStatusException::class.java) {
-					userEsService.getOne(realName)
+					userEsService.getOneByUsername(realName)
 				}.status, HttpStatus.NOT_FOUND, "found non existing user"
 		)
 	}
