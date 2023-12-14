@@ -8,5 +8,6 @@ data class ProjectModel(
         val name: String,
         val ownerId: UUID,
         val createdAt: Long,
-        val updatedAt: Long) {
+        val updatedAt: Long,
+        val tasks: MutableList<UUID>) {
 }
