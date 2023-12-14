@@ -28,7 +28,7 @@ class UserTests {
 		private val password = "12345678"
 
 		private val registerDTO = UserRegister(
-				username, password, realName
+				username, BCryptPasswordEncoder().encode(password), realName
 		)
 		private val loginDTO = UserLogin(
 				username, password
