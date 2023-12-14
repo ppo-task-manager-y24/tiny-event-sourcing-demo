@@ -19,25 +19,31 @@ class TaskService(
 
     private val logger = LoggerFactory.getLogger(TaskService::class.java)
 
-    fun createOne(data: TaskCreate): TaskCreatedEvent {
-        logger.error("createOne")
-        return taskEsService.create {
+    fun getOne(id: UUID): TaskAggregateState? {
+        return taskEsService.getState(id)
+    }
+
+    fun createOne(data: TaskCreate): TaskAggregateState? {
+        val event = taskEsService.create {
             it.create(data.name,
                     data.description,
                     data.projectId,
                     data.statusId)
         }
+        return getOne(event.taskId);
     }
 
-    fun rename(id: UUID, name: String) : List<Event<TaskAggregate>> {
-        return taskEsService.updateSerial(id) {
+    fun rename(id: UUID, name: String) : TaskAggregateState? {
+        taskEsService.updateSerial(id) {
             it.rename(name)
         }
+        return getOne(id)
     }
 
-    fun addUser(taskId: UUID, userId: UUID): List<Event<TaskAggregate>> {
-        return taskEsService.updateSerial(taskId) {
+    fun addUser(taskId: UUID, userId: UUID): TaskAggregateState? {
+        taskEsService.updateSerial(taskId) {
             it.addExecutor(userId)
         }
+        return getOne(taskId)
     }
 }
