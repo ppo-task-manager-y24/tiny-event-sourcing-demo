@@ -11,7 +11,7 @@ import java.util.UUID
 class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
     private lateinit var statusId: UUID
     private lateinit var statusName: String
-    private lateinit var color: String
+    private var color: Int = 0
     private var isDeleted: Boolean = false
     var createdAt: Long = System.currentTimeMillis()
     var updatedAt: Long = System.currentTimeMillis()

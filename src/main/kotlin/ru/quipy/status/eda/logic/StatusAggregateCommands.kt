@@ -5,19 +5,16 @@ import ru.quipy.status.eda.api.StatusDeletedEvent
 import java.util.*
 
 fun StatusAggregateState.create(
-        projectId: UUID,
-        statusId: UUID,
         statusName: String,
-        statusColor: String
+        statusColor: Int
 ): StatusCreatedEvent {
     return StatusCreatedEvent(
-            projectId,
-            statusId,
+            UUID.randomUUID(),
             statusName,
             statusColor
     )
 }
 
-fun StatusAggregateState.delete(projectId: UUID): StatusDeletedEvent {
-    return StatusDeletedEvent(projectId, getId())
+fun StatusAggregateState.delete(): StatusDeletedEvent {
+    return StatusDeletedEvent(this.getId())
 }
