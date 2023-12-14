@@ -44,6 +44,7 @@ class TaskNameChangedEvent(
 @DomainEvent(name = TASK_EXECUTOR_ADDED_EVENT)
 class TaskExecutorAddedEvent(
         val taskId: UUID,
+        val projectId: UUID,
         val executorId: UUID,
         createdAt: Long = System.currentTimeMillis(),
 ) : Event<TaskAggregate>(

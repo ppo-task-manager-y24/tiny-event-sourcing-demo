@@ -1,5 +1,6 @@
 package ru.quipy.user
 
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
@@ -16,43 +17,55 @@ import java.lang.Exception
 import java.util.*
 
 interface UserService {
-    fun createOne(data: UserRegister): UserModel
-    fun getOne(username: String): UserModel
+    fun createOne(data: UserRegister, userId: UUID): UserModel
+    fun getOneByUsername(username: String): UserModel
     fun logIn(data: UserLogin): UserModel
+    fun addProject(userId: UUID, projectId: UUID): UserModel
+    fun addTask(userId: UUID, projectId: UUID, taskId: UUID): UserModel
 }
 
 
 
 @Service
 class UserServiceImpl(
-        private val userRepository: UserRepository,
-        private val userEsService: EventSourcingService<UUID, UserAggregate, UserAggregateState>
+        private val userRepository: UserRepository
 ): UserService {
 
-    override fun createOne(data: UserRegister): UserModel {
+    override fun createOne(data: UserRegister, userId: UUID): UserModel {
         var foundUser: UserModel? = null
         try {
-            foundUser = getOne(data.username)
+            foundUser = getOneByUsername(data.username)
         } catch (e: Exception) {
             // skip if exists
         }
         if (foundUser != null) throw ResponseStatusException(HttpStatus.CONFLICT, "user already exists")
-
-        val userEntity = userRepository.save(data.toEntity())
-        return userEsService.create {
-            it.create(
-                userEntity.userId,
-                userEntity.username,
-                userEntity.realName,
-                userEntity.password)
-        }.toModel()
+        val dataEntity = data.toEntity()
+        dataEntity.userId = userId
+        val userEntity = userRepository.save(dataEntity)
+        return userEntity.toModel()
     }
 
-    override fun getOne(username: String): UserModel {
-        val userEntity: UserEntity =
-                userRepository.findByUsername(username) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user not found")
-        val lastUser = userEsService.getState(userEntity.userId)
-        return lastUser?.toModel() ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user is not present in es queue")
+    fun getOne(userId: UUID): UserEntity {
+        return this.userRepository.findByIdOrNull(userId.toString())
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user not found")
+    }
+
+    override fun getOneByUsername(username: String): UserModel {
+        return this.userRepository.findByUsername(username)?.toModel()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user not found")
+    }
+
+    override fun addProject(userId: UUID, projectId: UUID): UserModel {
+        val userEntity = getOne(userId)
+        userEntity.projects.add(projectId)
+        return this.userRepository.save(userEntity).toModel()
+    }
+
+    override fun addTask(userId: UUID, projectId: UUID, taskId: UUID): UserModel {
+        val userEntity = getOne(userId)
+        if (userEntity.tasks[projectId] == null) userEntity.tasks[projectId] = mutableSetOf<UUID>()
+        userEntity.tasks[projectId]?.add(taskId)
+        return this.userRepository.save(userEntity).toModel()
     }
 
     override fun logIn(data: UserLogin): UserModel {
@@ -66,6 +79,7 @@ class UserServiceImpl(
 
     fun UserRegister.toEntity(): UserEntity =
             UserEntity(
+                    userId = null,
                     username = this.username,
                     realName = this.realName,
                     password = BCryptPasswordEncoder().encode(this.password)
@@ -73,21 +87,16 @@ class UserServiceImpl(
 
     fun UserEntity.toModel(): UserModel = kotlin.runCatching {
         UserModel(
-                userId = this.userId,
+                userId = this.userId!!,
                 username = this.username,
                 realName = this.realName,
-                password = this.password
+                password = this.password,
+                projects = this.projects,
+                tasks = this.tasks
+
         )
     }.getOrElse { _ -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "some fields are missing") }
 
-    fun UserCreatedEvent.toModel(): UserModel = kotlin.runCatching {
-        UserModel(
-            userId = this.userId,
-            username = this.username,
-            realName = this.realName,
-            password = this.password
-        )
-    }.getOrElse { _ -> throw ResponseStatusException(HttpStatus.BAD_REQUEST, "some fields are missing") }
 
     private fun comparePassword(encodedPassword: String, newPassword: String): Boolean = BCryptPasswordEncoder().matches(newPassword, encodedPassword)
 }

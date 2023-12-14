@@ -16,17 +16,12 @@ class UserAggregateState: AggregateState<UUID, UserAggregate> {
     private lateinit var realName: String
     private lateinit var password: String
     var projects = mutableSetOf<UUID>()
-    var tasks = mutableSetOf<UUID>()
+    var tasks = mutableMapOf<UUID, MutableSet<UUID>>()
     var createdAt: Long = System.currentTimeMillis()
+    var updatedAt: Long = System.currentTimeMillis()
 
     override fun getId() = userId
 
-    fun toModel() = UserModel(
-        userId = this.userId,
-        username = this.username,
-        realName = this.realName,
-        password = this.password
-    )
 
     @StateTransitionFunc
     fun userCreatedApply(event: UserCreatedEvent) {
@@ -35,15 +30,5 @@ class UserAggregateState: AggregateState<UUID, UserAggregate> {
         realName = event.realName
         password = event.password
         createdAt = event.createdAt
-    }
-
-    @StateTransitionFunc
-    fun userAssignedToProjectApply(event: ProjectParticipantAddedEvent) {
-        projects.add(event.projectId)
-    }
-
-    @StateTransitionFunc
-    fun userAssignedToTaskApply(event: TaskExecutorAddedEvent) {
-        tasks.add(event.taskId)
     }
 }

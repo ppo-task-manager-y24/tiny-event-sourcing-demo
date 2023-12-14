@@ -5,10 +5,14 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.util.UUID
 
 @Document("users")
-class UserEntity(username: String, realName: String, password: String) {
+data class UserEntity(
     @Id
-    var userId: UUID = UUID.randomUUID()
-    lateinit var username: String
-    lateinit var realName: String
-    lateinit var password: String
+    var userId: UUID?,
+    var username: String,
+    var realName: String,
+    var password: String,
+    var projects: MutableSet<UUID> = mutableSetOf<UUID>(),
+    var tasks: MutableMap<UUID, MutableSet<UUID>> = mutableMapOf<UUID, MutableSet<UUID>>(),
+    var createdAt: Long = System.currentTimeMillis()
+) {
 }

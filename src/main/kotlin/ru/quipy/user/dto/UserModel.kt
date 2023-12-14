@@ -8,5 +8,7 @@ data class UserModel(
         val username: String,
         val realName: String,
         @JsonIgnore
-        val password: String) {
+        val password: String,
+        var projects: MutableSet<UUID>,
+        var tasks: MutableMap<UUID, MutableSet<UUID>>) {
 }

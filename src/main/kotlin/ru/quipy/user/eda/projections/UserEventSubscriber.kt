@@ -8,9 +8,9 @@ import ru.quipy.project.eda.api.ProjectParticipantAddedEvent
 import ru.quipy.streams.AggregateSubscriptionsManager
 import ru.quipy.task.eda.api.TaskAggregate
 import ru.quipy.task.eda.api.TaskExecutorAddedEvent
+import ru.quipy.user.UserService
+import ru.quipy.user.dto.UserRegister
 import ru.quipy.user.eda.api.UserAggregate
-import ru.quipy.user.eda.api.UserAssignedToProjectEvent
-import ru.quipy.user.eda.api.UserAssignedToTaskEvent
 import ru.quipy.user.eda.api.UserCreatedEvent
 import javax.annotation.PostConstruct
 
@@ -22,11 +22,22 @@ class UserEventSubscriber {
     @Autowired
     lateinit var subscriptionsManager: AggregateSubscriptionsManager
 
+    @Autowired
+    lateinit var userService: UserService
+
     @PostConstruct
     fun init() {
         subscriptionsManager.createSubscriber(UserAggregate::class, "some-subscriber-name") {
 
             `when`(UserCreatedEvent::class) { event ->
+                userService.createOne(
+                    UserRegister(
+                        event.username,
+                        event.password,
+                        event.realName
+                    ),
+                    event.userId
+                )
                 logger.info("Task created: {}", event.userId)
             }
         }
@@ -34,6 +45,7 @@ class UserEventSubscriber {
         subscriptionsManager.createSubscriber(ProjectAggregate::class, "project-sub") {
 
             `when`(ProjectParticipantAddedEvent::class) { event ->
+                userService.addProject(event.participantId, event.projectId)
                 logger.info("User {} assigned to project: {}", event.participantId, event.projectId)
             }
         }
@@ -42,6 +54,7 @@ class UserEventSubscriber {
 
 
             `when`(TaskExecutorAddedEvent::class) { event ->
+                userService.addTask(event.executorId, event.projectId, event.taskId)
                 logger.info("User {} assigned to task: {}", event.executorId, event.taskId)
             }
         }

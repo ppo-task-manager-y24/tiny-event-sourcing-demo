@@ -27,7 +27,7 @@ fun TaskAggregateState.addExecutor(id: UUID): List<Event<TaskAggregate>> {
     return ArrayList(
             listOf(
                     TaskUpdatedEvent(this.getId()),
-                    TaskExecutorAddedEvent(this.getId(), id)
+                    TaskExecutorAddedEvent(this.getId(), this.projectId, id)
             )
     )
 }
