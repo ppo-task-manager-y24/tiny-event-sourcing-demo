@@ -23,6 +23,6 @@ class StatusDeletedEvent(
         val statusId: UUID,
         createdAt: Long = System.currentTimeMillis()
 ) : Event<StatusAggregate>(
-        name = STATUS_CREATED_EVENT,
+        name = STATUS_DELETED_EVENT,
         createdAt = createdAt
 )

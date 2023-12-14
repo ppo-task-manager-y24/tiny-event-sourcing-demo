@@ -45,6 +45,10 @@ class StatusViewService(
         val status = statusRepository.findByIdOrNull(statusId)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
+        if (status.isDeleted) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
+        }
+
         return StatusViewModel(status.statusId, status.statusName, status.color)
     }
 
