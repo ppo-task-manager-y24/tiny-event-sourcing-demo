@@ -9,7 +9,7 @@ import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import ru.quipy.user.eda.api.UserAggregate
 import ru.quipy.user.eda.logic.UserAggregateState
-import ru.quipy.user.eda.projections.AnnotationBasedUserEventSubscriber
+//import ru.quipy.user.eda.projections.AnnotationBasedUserEventSubscriber
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -21,8 +21,8 @@ class UserConfig {
     @Autowired
     private lateinit var subscriptionsManager: AggregateSubscriptionsManager
 
-    @Autowired
-    private lateinit var userEventSubscriber: AnnotationBasedUserEventSubscriber
+//    @Autowired
+//    private lateinit var userEventSubscriber: AnnotationBasedUserEventSubscriber
 
     @Autowired
     private lateinit var eventStreamManager: AggregateEventStreamManager
@@ -35,7 +35,7 @@ class UserConfig {
 
     @PostConstruct
     fun init() {
-        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
+//        subscriptionsManager.subscribe<UserAggregate>(userEventSubscriber)
 
         eventStreamManager.maintenance {
             onRecordHandledSuccessfully { streamName, eventName ->
@@ -48,6 +48,4 @@ class UserConfig {
         }
     }
 
-    @Bean
-    fun userESService() = eventSourcingServiceFactory.create<UUID, UserAggregate, UserAggregateState>()
 }

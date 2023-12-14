@@ -15,7 +15,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/tasks")
-class ProjectController(
+class TaskController(
         val taskEsService: EventSourcingService<UUID, TaskAggregate, TaskAggregateState>
 ) {
     @PostMapping("/create")

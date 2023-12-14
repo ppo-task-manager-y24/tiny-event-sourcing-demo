@@ -9,7 +9,7 @@ import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import ru.quipy.task.eda.api.TaskAggregate
 import ru.quipy.task.eda.logic.TaskAggregateState
-import ru.quipy.task.eda.projections.AnnotationBasedTaskEventSubscriber
+//import ru.quipy.task.eda.projections.AnnotationBasedTaskEventSubscriber
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -21,8 +21,8 @@ class TaskConfig {
     @Autowired
     private lateinit var subscriptionsManager: AggregateSubscriptionsManager
 
-    @Autowired
-    private lateinit var taskEventSubscriber: AnnotationBasedTaskEventSubscriber
+//    @Autowired
+//    private lateinit var taskEventSubscriber: AnnotationBasedTaskEventSubscriber
 
     @Autowired
     private lateinit var eventStreamManager: AggregateEventStreamManager
@@ -35,7 +35,7 @@ class TaskConfig {
 
     @PostConstruct
     fun init() {
-        subscriptionsManager.subscribe<TaskAggregate>(taskEventSubscriber)
+//        subscriptionsManager.subscribe<TaskAggregate>(taskEventSubscriber)
 
         eventStreamManager.maintenance {
             onRecordHandledSuccessfully { streamName, eventName ->
@@ -48,6 +48,4 @@ class TaskConfig {
         }
     }
 
-    @Bean
-    fun userESService() = eventSourcingServiceFactory.create<UUID, TaskAggregate, TaskAggregateState>()
 }

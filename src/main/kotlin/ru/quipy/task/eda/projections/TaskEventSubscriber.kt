@@ -7,18 +7,18 @@ import ru.quipy.streams.AggregateSubscriptionsManager
 import ru.quipy.task.eda.api.TaskAggregate
 import javax.annotation.PostConstruct
 
-@Service
-class TaskEventSubscriber {
-
-    val logger = LoggerFactory.getLogger(TaskEventSubscriber::class.java)
-
-    @Autowired
-    lateinit var subscriptionsManager: AggregateSubscriptionsManager
-
-    @PostConstruct
-    fun init() {
-        subscriptionsManager.createSubscriber(TaskAggregate::class, "some-subscriber-name") {
-            logger.debug("subscriber created for task")
-        }
-    }
-}
+//@Service
+//class TaskEventSubscriber {
+//
+//    val logger = LoggerFactory.getLogger(TaskEventSubscriber::class.java)
+//
+//    @Autowired
+//    lateinit var subscriptionsManager: AggregateSubscriptionsManager
+//
+//    @PostConstruct
+//    fun init() {
+//        subscriptionsManager.createSubscriber(TaskAggregate::class, "some-subscriber-name") {
+//            logger.debug("subscriber created for task")
+//        }
+//    }
+//}
