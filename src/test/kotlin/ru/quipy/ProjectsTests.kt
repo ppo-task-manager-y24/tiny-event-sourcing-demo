@@ -1,5 +1,6 @@
 package ru.quipy
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ import ru.quipy.project.dto.ProjectModel
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.api.ProjectCreatedEvent
 import ru.quipy.user.UserEntity
+import java.lang.NullPointerException
 import java.sql.Timestamp
 import java.util.*
 
@@ -57,6 +59,8 @@ class ProjectsTests {
             title,
             ownerId
         )
+
+        private var state: ProjectAggregateState? = null
     }
 
     @Autowired
@@ -68,47 +72,70 @@ class ProjectsTests {
     @BeforeEach
     fun cleanDatabase() {
         try {
-            mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectEsService.getOne(id)!!.getId())),
+            mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectEsService.getOne(projectCreateModel.id)!!.getId())),
                 ProjectModel::class.java)
-        } catch (e: ResponseStatusException) {
-            if (e.status != HttpStatus.NOT_FOUND)
-            {
-                throw e
-            }
+        } catch (e: NullPointerException) {
+            return
         }
+    }
+
+    @AfterEach
+    fun cleanDatabaseAfter() {
+        try {
+            mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectEsService.getOne(state!!.getId())!!.getId())),
+                ProjectModel::class.java)
+        } catch (e: NullPointerException) {
+            return
+        }
+
+        state = null
     }
 
     @Test
     fun createNewProject() {
-        var event: ProjectAggregateState? = null
+
+        val projectCreateModel = ProjectCreate(
+            UUID.randomUUID(),
+            title,
+            ownerId
+        )
 
         Assertions.assertDoesNotThrow( {
-            event = projectEsService.createOne(projectCreateModel)
+            state = projectEsService.createOne(projectCreateModel)
         }, "can't create new project")
 
         Assertions.assertAll(
-            Executable { Assertions.assertEquals(event!!.participants, MutableList<UUID>(0, {
+            Executable { Assertions.assertEquals(state!!.participants, MutableList<UUID>(0, {
                 UUID.randomUUID()
             }), "project participants doesn't match") },
-            Executable { Assertions.assertEquals(event!!.name, title,
+            Executable { Assertions.assertEquals(state!!.name, title,
                 "project names doesn't match") },
-            Executable { Assertions.assertEquals(event!!.owner, ownerId,
+            Executable { Assertions.assertEquals(state!!.owner, ownerId,
             "project owners doesn't match") }
         )
     }
 
     @Test
     fun addUserToProject() {
-        var projectCreatedEvent: ProjectAggregateState? = null
+
+        val projectCreateModel = ProjectCreate(
+            UUID.randomUUID(),
+            title,
+            ownerId
+        )
 
         Assertions.assertDoesNotThrow( {
-            projectCreatedEvent = projectEsService.createOne(projectCreateModel)
+            state = projectEsService.createOne(projectCreateModel)
         }, "can't create new project")
 
         var userAddState: ProjectAggregateState? = null
 
+        var projectId = state?.getId()
+
+        Assertions.assertNotNull(projectId)
+
         Assertions.assertDoesNotThrow( {
-            userAddState = projectEsService.addUser(projectModel.id, participants[0])
+            userAddState = projectEsService.addUser(projectId!!, participants[0])
         }, "can't add user")
 
         Assertions.assertAll(

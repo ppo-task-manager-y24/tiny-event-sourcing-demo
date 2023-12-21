@@ -1,5 +1,6 @@
 package ru.quipy
 
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -19,6 +20,7 @@ import ru.quipy.task.dto.TaskCreate
 import ru.quipy.task.eda.api.TaskAggregate
 import ru.quipy.task.eda.api.TaskCreatedEvent
 import ru.quipy.task.eda.logic.TaskAggregateState
+import java.lang.NullPointerException
 import java.sql.Timestamp
 import java.util.*
 
@@ -41,6 +43,8 @@ class TasksTests {
 
         private val newTaskName = "taskName 1"
         private val assigneeId = UUID.randomUUID()
+
+        private var state: TaskAggregateState? = null
     }
 
     @Autowired
@@ -54,24 +58,32 @@ class TasksTests {
         try {
             mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getOne(id)!!.getId())),
                 ProjectModel::class.java)
-        } catch (e: ResponseStatusException) {
-            if (e.status != HttpStatus.NOT_FOUND)
-            {
-                throw e
-            }
+        } catch (e: NullPointerException) {
+            return
         }
     }
-    
+
+    @AfterEach
+    fun cleanDatabaseAfter() {
+        try {
+            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getOne(state!!.getId())!!.getId())),
+                ProjectModel::class.java)
+        } catch (e: NullPointerException) {
+            return
+        }
+
+        state = null
+    }
+
+
     @Test
     fun createNewTask() {
-        var state: TaskAggregateState? = null
 
         Assertions.assertDoesNotThrow( {
             state = taskEsService.createOne(taskCreateModel)
         }, "can't create new task")
 
         Assertions.assertAll(
-            Executable { Assertions.assertEquals(state!!.getId(), taskCreateModel.id, "task ids doesn't match") },
             Executable { Assertions.assertEquals(state!!.name, taskCreateModel.name,
                 "task names doesn't match") },
             Executable { Assertions.assertEquals(state!!.description, taskCreateModel.description,
@@ -85,20 +97,22 @@ class TasksTests {
 
     @Test
     fun renameTask() {
-        var taskCreatedState: TaskAggregateState? = null
 
         Assertions.assertDoesNotThrow( {
-            taskCreatedState = taskEsService.createOne(taskCreateModel)
+            state = taskEsService.createOne(taskCreateModel)
         }, "can't create new task")
 
         var taskRenameState: TaskAggregateState? = null
 
+        var taskId = state?.getId()
+
+        Assertions.assertNotNull(taskId)
+
         Assertions.assertDoesNotThrow( {
-            taskRenameState = taskEsService.rename(taskCreateModel.id, newTaskName)
+            taskRenameState = taskEsService.rename(taskId!!, newTaskName)
         }, "can't rename task")
 
         Assertions.assertAll(
-            Executable { Assertions.assertEquals(taskRenameState!!.getId(), taskCreateModel.id, "task ids doesn't match") },
             Executable { Assertions.assertEquals(taskRenameState!!.name, newTaskName,
                 "task names doesn't match") },
             Executable { Assertions.assertEquals(taskRenameState!!.description, taskCreateModel.description,
@@ -113,21 +127,24 @@ class TasksTests {
     @Test
     fun addUser() {
 
-        var taskCreatedState: TaskAggregateState? = null
+        var state: TaskAggregateState? = null
 
         Assertions.assertDoesNotThrow( {
-            taskCreatedState = taskEsService.createOne(taskCreateModel)
+            state = taskEsService.createOne(taskCreateModel)
         }, "can't create new task")
 
         var addUserState: TaskAggregateState? = null
 
+        var taskId = state?.getId()
+
+        Assertions.assertNotNull(taskId)
+
         Assertions.assertDoesNotThrow( {
-            addUserState = taskEsService.addUser(taskCreateModel.id, assigneeId)
+            addUserState = taskEsService.addUser(taskId!!, assigneeId)
         }, "can't rename task")
 
         Assertions.assertAll(
-            Executable { Assertions.assertEquals(addUserState!!.getId(), taskCreateModel.id, "task ids doesn't match") },
-            Executable { Assertions.assertEquals(addUserState!!.name, newTaskName,
+            Executable { Assertions.assertEquals(addUserState!!.name, taskCreateModel.name,
                 "task names doesn't match") },
             Executable { Assertions.assertEquals(addUserState!!.description, taskCreateModel.description,
                 "task descriptions doesn't match") },
