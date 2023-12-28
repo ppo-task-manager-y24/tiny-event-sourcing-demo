@@ -15,7 +15,7 @@ import java.util.*
 
 @Service
 class ProjectService(
-        private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>) {
+    private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>) {
 
     fun getOne(id: UUID): ProjectAggregateState? {
         return projectEsService.getState(id)

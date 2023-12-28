@@ -6,6 +6,6 @@ data class TaskCreate(
         val id: UUID,
         val name: String,
         val description: String,
-        val projectId: UUID,
+        var projectId: UUID,
         val statusId: UUID
 )

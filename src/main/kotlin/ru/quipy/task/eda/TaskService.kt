@@ -4,46 +4,49 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.quipy.core.EventSourcingService
 import ru.quipy.domain.Event
+import ru.quipy.logic.ProjectAggregateState
+import ru.quipy.logic.TaskEntity
+import ru.quipy.project.eda.api.ProjectAggregate
+import ru.quipy.project.eda.logic.addTaskExecutor
+import ru.quipy.project.eda.logic.createTask
+import ru.quipy.project.eda.logic.getTask
+import ru.quipy.project.eda.logic.renameTask
 import ru.quipy.task.dto.TaskCreate
-import ru.quipy.task.eda.api.TaskAggregate
-import ru.quipy.task.eda.api.TaskCreatedEvent
-import ru.quipy.task.eda.logic.TaskAggregateState
-import ru.quipy.task.eda.logic.addExecutor
-import ru.quipy.task.eda.logic.create
-import ru.quipy.task.eda.logic.rename
 import java.util.*
 
 @Service
 class TaskService(
-        private val taskEsService: EventSourcingService<UUID, TaskAggregate, TaskAggregateState>) {
+    private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>) {
 
     private val logger = LoggerFactory.getLogger(TaskService::class.java)
 
-    fun getOne(id: UUID): TaskAggregateState? {
-        return taskEsService.getState(id)
+    fun getOne(projectId: UUID, taskId: UUID): TaskEntity? {
+        return projectEsService.getState(projectId)?.getTask(taskId)
     }
 
-    fun createOne(data: TaskCreate): TaskAggregateState? {
-        val event = taskEsService.create {
-            it.create(data.name,
-                    data.description,
-                    data.projectId,
-                    data.statusId)
+    fun createOne(data: TaskCreate): TaskEntity? {
+        val event = projectEsService.update(data.projectId) {
+            it.createTask(
+                data.id,
+                data.name,
+                data.description,
+                data.statusId)
         }
-        return getOne(event.taskId);
+        return getOne(data.projectId, event.taskId)
     }
 
-    fun rename(id: UUID, name: String) : TaskAggregateState? {
-        taskEsService.updateSerial(id) {
-            it.rename(name)
+    fun rename(projectId: UUID, taskId: UUID, name: String) : TaskEntity? {
+        projectEsService.updateSerial(projectId) {
+            it.renameTask(taskId, name)
         }
-        return getOne(id)
+        return getOne(projectId, taskId)
     }
 
-    fun addUser(taskId: UUID, userId: UUID): TaskAggregateState? {
-        taskEsService.updateSerial(taskId) {
-            it.addExecutor(userId)
+    fun addUser(projectId: UUID, taskId: UUID, userId: UUID): TaskEntity? {
+        projectEsService.updateSerial(projectId) {
+            it.addTaskExecutor(taskId, userId)
         }
-        return getOne(taskId)
+        return getOne(projectId, taskId)
     }
+
 }
