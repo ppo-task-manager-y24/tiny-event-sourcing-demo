@@ -79,7 +79,7 @@ class TasksTests {
         projectId = UUID.randomUUID()
         projectCreateModel.id = projectId
         taskCreateModel.projectId = projectId
-        projectEsService.createOne(projectCreateModel)
+        projectEsService.createProject(projectCreateModel)
     }
 
     @AfterEach
@@ -95,7 +95,6 @@ class TasksTests {
 
         state = null
     }
-
 
     @Test
     fun createNewTask() {
@@ -167,7 +166,7 @@ class TasksTests {
             },
             "user added")
 
-        projectEsService.addUser(taskCreateModel.projectId, assigneeId)
+        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
 
         Assertions.assertDoesNotThrow( {
             addUserState = taskEsService.addUser(projectId, taskId!!, assigneeId)

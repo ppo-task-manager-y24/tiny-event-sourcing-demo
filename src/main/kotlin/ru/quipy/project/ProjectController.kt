@@ -18,8 +18,8 @@ class ProjectController(
         val projectService: ProjectService
 ) {
     @PostMapping("/{title}")
-    fun createProject(@PathVariable title: String, @RequestParam ownerId: UUID): ProjectAggregateState? {
-        return projectService.createOne(ProjectCreate(
+    fun createProject(@PathVariable title: String, @RequestParam ownerId: UUID): ProjectCreatedEvent {
+        return projectService.createProject(ProjectCreate(
                 id = UUID.randomUUID(),
                 title = title,
                 ownerId = ownerId)
@@ -28,11 +28,11 @@ class ProjectController(
 
     @GetMapping("/{id}")
     fun getProject(@PathVariable id: UUID): ProjectAggregateState? {
-        return projectService.getOne(id)
+        return projectService.state(id)
     }
 
     @PostMapping("/{id}/{userId}")
-    fun addUserToProject(@PathVariable id: UUID, @PathVariable userId: UUID): ProjectAggregateState? {
-        return projectService.addUser(id, userId)
+    fun addUserToProject(@PathVariable id: UUID, @PathVariable userId: UUID): List<Event<ProjectAggregate>> {
+        return projectService.addUserToProject(id, userId)
     }
 }

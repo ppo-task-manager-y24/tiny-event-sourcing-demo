@@ -10,7 +10,7 @@ import java.util.*
 // Commands : takes something -> returns event
 // Here the commands are represented by extension functions, but also can be the class member functions
 
-fun ProjectAggregateState.create(id: UUID, name: String, ownerId: UUID): ProjectCreatedEvent {
+fun ProjectAggregateState.create(id: UUID = UUID.randomUUID(), name: String, ownerId: UUID): ProjectCreatedEvent {
     return ProjectCreatedEvent(
         projectId = id,
         projectName = name,
@@ -18,8 +18,9 @@ fun ProjectAggregateState.create(id: UUID, name: String, ownerId: UUID): Project
     )
 }
 
+@Throws(IllegalArgumentException::class)
 fun ProjectAggregateState.addUser(id: UUID): List<Event<ProjectAggregate>> {
-    if(participants.contains(id)) {
+    if (participants.contains(id)) {
         throw IllegalArgumentException("User with id: $id already exists in project")
     }
     return ArrayList(
@@ -40,7 +41,12 @@ fun ProjectAggregateState.createTask(taskId: UUID, name: String, description: St
     )
 }
 
+@Throws(IllegalArgumentException::class)
 fun ProjectAggregateState.renameTask(id: UUID, name: String): List<Event<ProjectAggregate>> {
+    if (!tasks.contains(id)) {
+        throw IllegalArgumentException("Task with id: $id does not exist in project")
+    }
+
     return ArrayList(
         listOf(
             TaskUpdatedEvent(id),
