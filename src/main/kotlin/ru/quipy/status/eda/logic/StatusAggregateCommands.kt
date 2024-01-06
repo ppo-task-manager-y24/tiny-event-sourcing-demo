@@ -1,35 +1,44 @@
 package ru.quipy.status.eda.logic
 
-import ru.quipy.status.eda.api.StatusRemovedFromTaskEvent
-import ru.quipy.status.eda.api.StatusUsedInTaskEvent
-import ru.quipy.status.eda.api.StatusCreatedEvent
-import ru.quipy.status.eda.api.StatusDeletedEvent
+import ru.quipy.status.eda.api.*
 import java.util.*
 
-fun StatusAggregateState.create(
-        id: UUID,
+fun StatusAggregateState.addStatus(
+        statusId: UUID,
         statusName: String,
         statusColor: Int
-): StatusCreatedEvent {
-    return StatusCreatedEvent(
-            id,
+): StatusAddedEvent {
+    if (statuses.containsKey(statusId)) {
+        throw IllegalStateException("there is already status with such id: ${statusId} in project: ${getId()}")
+    }
+
+    return StatusAddedEvent(
+            getId(),
+            statusId,
             statusName,
             statusColor
     )
 }
 
-fun StatusAggregateState.delete(): StatusDeletedEvent {
-    if (usedTaskIds.isNotEmpty()) {
-        throw IllegalStateException("Unable to delete status – status ${this.getId()} is used in tasks: ${this.usedTaskIds}")
+fun StatusAggregateState.create(
+    projectId: UUID
+): StatusCreatedEvent {
+    return StatusCreatedEvent(projectId)
+}
+
+@Throws(IllegalStateException::class)
+fun StatusAggregateState.delete(statusId: UUID): StatusDeletedEvent {
+    if (statuses[statusId]?.usedTaskIds?.isNotEmpty() != false) {
+        throw IllegalStateException("Unable to delete status – status ${this.getId()} is used in tasks: ${this.statuses[statusId]?.usedTaskIds}")
     }
 
-    return StatusDeletedEvent(this.getId())
+    return StatusDeletedEvent(getId(), statusId)
 }
 
-fun StatusAggregateState.statusUsedInTask(taskId: UUID): StatusUsedInTaskEvent {
-    return StatusUsedInTaskEvent(taskId)
+fun StatusAggregateState.statusUsedInTask(taskId: UUID, statusId: UUID): StatusUsedInTaskEvent {
+    return StatusUsedInTaskEvent(getId(), statusId, taskId)
 }
 
-fun StatusAggregateState.statusRemovedInTask(taskId: UUID): StatusRemovedFromTaskEvent {
-    return StatusRemovedFromTaskEvent(taskId)
+fun StatusAggregateState.statusRemovedInTask(taskId: UUID, statusId: UUID): StatusRemovedFromTaskEvent {
+    return StatusRemovedFromTaskEvent(getId(), statusId, taskId)
 }

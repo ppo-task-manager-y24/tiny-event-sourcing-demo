@@ -41,6 +41,7 @@ fun ProjectAggregateState.createTask(taskId: UUID, name: String, description: St
             statusId = statusId
         ),
         StatusUsedInTaskEvent(
+            getId(),
             statusId,
             taskId
         )

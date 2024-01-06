@@ -3,47 +3,69 @@ package ru.quipy.status.eda.logic
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
 import ru.quipy.status.eda.api.*
+import java.math.BigDecimal
 import java.util.UUID
 
 
 class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
-    private lateinit var statusId: UUID
-    private lateinit var statusName: String
-    private var color: Int = 0
-    private var isDeleted: Boolean = false
-    var createdAt: Long = System.currentTimeMillis()
+    private lateinit var projectId: UUID
+
+    internal var statuses: MutableMap<UUID, Status> = mutableMapOf()
+    override fun getId() = projectId
+
+    @StateTransitionFunc
+    fun statusCreatedApply(event: StatusCreatedEvent) {
+        projectId = event.projectId
+
+        statuses[defaultStatusId] = Status(defaultStatusId, event.projectId, defaultStatusName)
+    }
+
+    @StateTransitionFunc
+    fun statusAddedApply(event: StatusAddedEvent) {
+        statuses[event.statusId] = Status(
+            id = event.statusId,
+            projectId = event.projectId,
+            statusName = event.statusName,
+            color = event.color,
+            createdAt = event.createdAt
+        )
+    }
+
+    @StateTransitionFunc
+    fun statusDeletedApply(event: StatusDeletedEvent) {
+        statuses[event.statusId]?.isDeleted  = true
+        statuses[event.statusId]?.updatedAt = System.currentTimeMillis()
+    }
+
+    @StateTransitionFunc
+    fun usedInTaskApply(event: StatusUsedInTaskEvent) {
+        statuses[event.statusId]?.usedTaskIds?.add(event.taskId)
+    }
+
+    @StateTransitionFunc
+    fun removedFromTaskApply(event: StatusRemovedFromTaskEvent) {
+        statuses[event.statusId]?.usedTaskIds?.remove(event.taskId)
+    }
+
+    companion object {
+        const val defaultStatusName = "DEFAULT"
+        val defaultStatusId = UUID.randomUUID()
+    }
+}
+
+data class Status(
+    val id: UUID = UUID.randomUUID(),
+    val projectId: UUID,
+    internal var statusName: String,
+    internal var color: Int = 0,
+    internal var isDeleted: Boolean = false,
+    internal var usedTaskIds: MutableSet<UUID> = mutableSetOf(),
+    var createdAt: Long = System.currentTimeMillis(),
     var updatedAt: Long = System.currentTimeMillis()
-
-    var usedTaskIds: MutableSet<UUID> = mutableSetOf()
-
-    override fun getId() = statusId
-
+) {
     fun getStatusName() = statusName
 
     fun getColor() = color
 
     fun isDeleted() = isDeleted && usedTaskIds.isEmpty()
-
-    @StateTransitionFunc
-    fun statusCreatedApply(event: StatusCreatedEvent) {
-        statusId = event.statusId
-        statusName = event.statusName
-        color = event.color
-    }
-
-    @StateTransitionFunc
-    fun statusDeletedApply(event: StatusDeletedEvent) {
-        isDeleted = true
-        updatedAt = System.currentTimeMillis()
-    }
-
-    @StateTransitionFunc
-    fun usedInTaskApply(event: StatusUsedInTaskEvent) {
-        usedTaskIds.add(event.taskId)
-    }
-
-    @StateTransitionFunc
-    fun removedFromTaskApply(event: StatusRemovedFromTaskEvent) {
-        usedTaskIds.remove(event.taskId)
-    }
 }

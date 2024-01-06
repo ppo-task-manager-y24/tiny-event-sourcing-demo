@@ -51,15 +51,15 @@ class ProjectEventsSubscriber(
 
     @SubscribeEvent
     fun statusUsedInTaskEventSubscriber(event: StatusUsedInTaskEvent) {
-        statusEsService.update(event.statusId) {
-            it.statusUsedInTask(event.taskId)
+        statusEsService.update(event.projectId) {
+            it.statusUsedInTask(event.taskId, event.statusId)
         }
     }
 
     @SubscribeEvent
     fun statusRemovedFromTaskSubscriber(event: StatusRemovedFromTaskEvent) {
-        statusEsService.update(event.statusId) {
-            it.statusRemovedInTask(event.taskId)
+        statusEsService.update(event.projectId) {
+            it.statusRemovedInTask(event.taskId, event.statusId)
         }
     }
 }

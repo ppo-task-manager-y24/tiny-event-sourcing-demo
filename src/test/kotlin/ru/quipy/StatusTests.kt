@@ -16,10 +16,8 @@ import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.logic.create
 import ru.quipy.status.dto.StatusViewModel
 import ru.quipy.status.eda.api.StatusAggregate
-import ru.quipy.status.eda.logic.StatusAggregateState
-import ru.quipy.status.eda.logic.create
-import ru.quipy.status.eda.logic.delete
-import ru.quipy.status.eda.projections.StatusViewService
+import ru.quipy.status.eda.logic.*
+import ru.quipy.status.eda.projections.status_view.StatusViewService
 import ru.quipy.task.dto.TaskCreate
 import ru.quipy.task.eda.TaskService
 import java.util.*
@@ -51,7 +49,18 @@ class StatusTests {
     lateinit var mongoTemplate: MongoTemplate
 
     @BeforeEach
-    fun cleanDatabase() {
+    fun init() {
+        cleanDatabase()
+        initStatusAggregate()
+    }
+
+    private fun initStatusAggregate() {
+        statusEsService.create {
+            it.create(projectId)
+        }
+    }
+
+    private fun cleanDatabase() {
         mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(statusId)), "aggregate-project")
         mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(projectId)), "aggregate-project")
         mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(statusId)), "aggregate-status")
@@ -64,29 +73,43 @@ class StatusTests {
     }
 
     @Test
-    fun creatStatus() {
-        statusEsService.create {
-            it.create(statusId, STATUS_NAME, COLOR)
+    fun addStatus() {
+        statusEsService.update(projectId) {
+            it.addStatus(statusId, STATUS_NAME, COLOR)
         }
 
-        val state = statusEsService.getState(statusId)
+        val state = statusEsService.getState(projectId)
 
         Assertions.assertNotNull(state)
 
+        val statuses = state!!.statuses.toList()
+
+        Assertions.assertEquals(statuses.count(), 2)
+
+        val status = statuses.first {
+            it.first == statusId
+        }.second
+
         Assertions.assertAll(
-            Executable { Assertions.assertEquals(state!!.getId(), statusId,
+            Executable { Assertions.assertEquals(state.getId(), projectId,
+                "projectId's doesn't match.") },
+            Executable { Assertions.assertEquals(
+                status.projectId, projectId,
                 "statusId's doesn't match.") },
-            Executable { Assertions.assertEquals(state!!.getStatusName(), STATUS_NAME,
+            Executable { Assertions.assertEquals(
+                status.statusName, STATUS_NAME,
                 "status names doesn't match.") },
-            Executable { Assertions.assertEquals(state!!.getColor(), COLOR,
+            Executable { Assertions.assertEquals(
+                status.color, COLOR,
                 "colors doesn't match.") }
         )
     }
 
     @Test
     fun createStatus_readFromProjection_Succeeds() {
-        val event = statusEsService.create {
-            it.create(statusId, STATUS_NAME, COLOR)
+
+        statusEsService.update(projectId) {
+            it.addStatus(statusId, STATUS_NAME, COLOR)
         }
 
         Awaitility
@@ -96,15 +119,15 @@ class StatusTests {
                 var storedStatus: StatusViewModel? = null
 
                 Assertions.assertDoesNotThrow( {
-                    storedStatus = statusViewService.getStatus(event.statusId)
+                    storedStatus = statusViewService.getStatus(projectId, statusId)
                 }, "status doesn't exist.")
 
                 Assertions.assertAll(
-                    Executable { Assertions.assertEquals(storedStatus!!.statusId, event.statusId,
+                    Executable { Assertions.assertEquals(storedStatus!!.statusId, statusId,
                         "statusId's doesn't match.") },
-                    Executable { Assertions.assertEquals(event.statusName, STATUS_NAME,
+                    Executable { Assertions.assertEquals(storedStatus!!.statusName, STATUS_NAME,
                         "status names doesn't match.") },
-                    Executable { Assertions.assertEquals(event.color, COLOR,
+                    Executable { Assertions.assertEquals(storedStatus!!.color, COLOR,
                         "colors doesn't match.") }
                 )
             }
@@ -118,28 +141,29 @@ class StatusTests {
            .await()
            .pollDelay(1, TimeUnit.SECONDS)
            .untilAsserted {
-               val isDeleted = statusEsService.getState(statusId)?.isDeleted()
 
-               Assertions.assertNotNull(isDeleted)
-
-               Assertions.assertFalse(isDeleted!!)
+               Assertions.assertThrows(IllegalStateException::class.java) {
+                   statusEsService.update(projectId) {
+                       it.delete(statusId)
+                   }
+               }
            }
     }
 
     @Test
     fun deleteNotAssignedStatus_Succeeds() {
 
-        createAndAssignStatusToTask()
+        createStatus()
 
-        statusEsService.update(statusId) {
-            it.delete()
+        statusEsService.update(projectId) {
+            it.delete(statusId)
         }
 
         Awaitility
             .await()
             .pollDelay(1, TimeUnit.SECONDS)
             .untilAsserted {
-                val isDeleted = statusEsService.getState(statusId)?.isDeleted()
+                val isDeleted = statusEsService.getState(projectId)?.statuses?.get(statusId)?.isDeleted()
 
                 Assertions.assertNotNull(isDeleted)
 
@@ -149,8 +173,8 @@ class StatusTests {
     }
 
     private fun createAndAssignStatusToTask() {
-        statusEsService.create {
-            it.create(statusId, STATUS_NAME, COLOR)
+        statusEsService.update(projectId) {
+            it.addStatus(statusId, STATUS_NAME, COLOR)
         }
 
         projectEsService.create {
@@ -164,5 +188,15 @@ class StatusTests {
             projectId,
             statusId
         ))
+    }
+
+    private fun createStatus() {
+        statusEsService.update(projectId) {
+            it.addStatus(statusId, STATUS_NAME, COLOR)
+        }
+
+        projectEsService.create {
+            it.create(projectId, "projectTitle", UUID.randomUUID())
+        }
     }
 }

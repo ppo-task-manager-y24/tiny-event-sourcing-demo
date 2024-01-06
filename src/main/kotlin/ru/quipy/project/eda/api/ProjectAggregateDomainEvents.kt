@@ -92,6 +92,7 @@ class TaskExecutorAddedEvent(
 
 @DomainEvent(name = STATUS_USED_IN_TASK_EVENT)
 class StatusUsedInTaskEvent(
+    val projectId: UUID,
     val statusId: UUID,
     val taskId: UUID,
     createdAt: Long = System.currentTimeMillis()
@@ -102,6 +103,7 @@ class StatusUsedInTaskEvent(
 
 @DomainEvent(name = STATUS_REMOVED_FROM_TASK_EVENT)
 class StatusRemovedFromTaskEvent(
+    val projectId: UUID,
     val statusId: UUID,
     val taskId: UUID,
     createdAt: Long = System.currentTimeMillis()
