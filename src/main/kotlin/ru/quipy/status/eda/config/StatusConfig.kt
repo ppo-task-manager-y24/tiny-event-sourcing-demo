@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.core.EventSourcingServiceFactory
+import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.status.eda.api.StatusAggregate
 import ru.quipy.status.eda.logic.StatusAggregateState
+import ru.quipy.status.projections.ProjectEventsSubscriber
 import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*

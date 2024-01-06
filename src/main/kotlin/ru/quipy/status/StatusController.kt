@@ -29,6 +29,7 @@ class StatusController(
 
         return statusEsService.create {
             it.create(
+                    UUID.randomUUID(),
                     req.statusName,
                     req.color)
         }

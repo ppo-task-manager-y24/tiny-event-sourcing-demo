@@ -4,13 +4,17 @@ import ru.quipy.task.eda.api.*
 import ru.quipy.domain.Event
 import java.util.*
 
-fun TaskAggregateState.create(name: String, description: String, projectId: UUID, statusId: UUID): TaskCreatedEvent {
-    return TaskCreatedEvent(
-            taskId = UUID.randomUUID(),
+fun TaskAggregateState.create(name: String, description: String, projectId: UUID, statusId: UUID): List<Event<TaskAggregate>> {
+    val taskId = UUID.randomUUID()
+
+    return listOf(
+        TaskCreatedEvent(
+            taskId = taskId,
             taskName = name,
             taskDescription = description,
             projectId = projectId,
             statusId = statusId
+        )
     )
 }
 

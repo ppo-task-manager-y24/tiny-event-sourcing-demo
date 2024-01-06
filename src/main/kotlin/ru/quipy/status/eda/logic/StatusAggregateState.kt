@@ -2,9 +2,7 @@ package ru.quipy.status.eda.logic
 
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
-import ru.quipy.status.eda.api.StatusAggregate
-import ru.quipy.status.eda.api.StatusCreatedEvent
-import ru.quipy.status.eda.api.StatusDeletedEvent
+import ru.quipy.status.eda.api.*
 import java.util.UUID
 
 
@@ -16,9 +14,15 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
     var createdAt: Long = System.currentTimeMillis()
     var updatedAt: Long = System.currentTimeMillis()
 
+    var usedTaskIds: MutableSet<UUID> = mutableSetOf()
+
     override fun getId() = statusId
 
-    fun isDeleted() = isDeleted
+    fun getStatusName() = statusName
+
+    fun getColor() = color
+
+    fun isDeleted() = isDeleted && usedTaskIds.isEmpty()
 
     @StateTransitionFunc
     fun statusCreatedApply(event: StatusCreatedEvent) {
@@ -31,5 +35,15 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
     fun statusDeletedApply(event: StatusDeletedEvent) {
         isDeleted = true
         updatedAt = System.currentTimeMillis()
+    }
+
+    @StateTransitionFunc
+    fun usedInTaskApply(event: StatusUsedInTaskEvent) {
+        usedTaskIds.add(event.taskId)
+    }
+
+    @StateTransitionFunc
+    fun removedFromTaskApply(event: StatusRemovedFromTaskEvent) {
+        usedTaskIds.remove(event.taskId)
     }
 }

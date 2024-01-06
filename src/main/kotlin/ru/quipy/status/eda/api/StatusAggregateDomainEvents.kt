@@ -2,6 +2,8 @@ package ru.quipy.status.eda.api
 
 import ru.quipy.core.annotations.DomainEvent
 import ru.quipy.domain.Event
+import ru.quipy.project.eda.api.STATUS_REMOVED_FROM_TASK_EVENT
+import ru.quipy.project.eda.api.STATUS_USED_IN_TASK_EVENT
 import java.util.*
 
 const val STATUS_CREATED_EVENT = "STATUS_CREATED_EVENT"
@@ -24,5 +26,23 @@ class StatusDeletedEvent(
         createdAt: Long = System.currentTimeMillis()
 ) : Event<StatusAggregate>(
         name = STATUS_DELETED_EVENT,
+        createdAt = createdAt
+)
+
+@DomainEvent(name = STATUS_USED_IN_TASK_EVENT)
+class StatusUsedInTaskEvent(
+        val taskId: UUID,
+        createdAt: Long = System.currentTimeMillis()
+): Event<StatusAggregate>(
+        name = STATUS_USED_IN_TASK_EVENT,
+        createdAt = createdAt
+)
+
+@DomainEvent(name = STATUS_REMOVED_FROM_TASK_EVENT)
+class StatusRemovedFromTaskEvent(
+        val taskId: UUID,
+        createdAt: Long = System.currentTimeMillis()
+): Event<StatusAggregate>(
+        name = STATUS_REMOVED_FROM_TASK_EVENT,
         createdAt = createdAt
 )

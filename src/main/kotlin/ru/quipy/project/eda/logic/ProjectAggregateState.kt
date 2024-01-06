@@ -2,14 +2,7 @@ package ru.quipy.logic
 
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
-import ru.quipy.project.eda.api.ProjectAggregate
-import ru.quipy.project.eda.api.ProjectCreatedEvent
-import ru.quipy.project.eda.api.ProjectParticipantAddedEvent
-import ru.quipy.project.eda.api.ProjectUpdatedEvent
-import ru.quipy.project.eda.api.TaskCreatedEvent
-import ru.quipy.project.eda.api.TaskExecutorAddedEvent
-import ru.quipy.project.eda.api.TaskNameChangedEvent
-import ru.quipy.project.eda.api.TaskUpdatedEvent
+import ru.quipy.project.eda.api.*
 import java.util.*
 
 // Service's business logic
@@ -71,6 +64,16 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
     fun taskExecutorAddedApply(event: TaskExecutorAddedEvent) {
         tasks[event.taskId]?.executors?.add(event.executorId)
         updatedAt = event.createdAt
+    }
+
+    @StateTransitionFunc
+    fun statusUsedInTaskEventApply(event: StatusUsedInTaskEvent) {
+
+    }
+
+    @StateTransitionFunc
+    fun statusRemovedFromTaskEventApply(event: StatusRemovedFromTaskEvent) {
+
     }
 }
 

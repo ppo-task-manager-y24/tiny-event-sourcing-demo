@@ -31,13 +31,19 @@ fun ProjectAggregateState.addUser(id: UUID): List<Event<ProjectAggregate>> {
     )
 }
 
-fun ProjectAggregateState.createTask(taskId: UUID, name: String, description: String, statusId: UUID): TaskCreatedEvent {
-    return TaskCreatedEvent(
-        taskId = taskId,
-        taskName = name,
-        taskDescription = description,
-        projectId = this.getId(),
-        statusId = statusId
+fun ProjectAggregateState.createTask(taskId: UUID, name: String, description: String, statusId: UUID): List<Event<ProjectAggregate>> {
+    return listOf(
+        TaskCreatedEvent(
+            taskId = taskId,
+            taskName = name,
+            taskDescription = description,
+            projectId = this.getId(),
+            statusId = statusId
+        ),
+        StatusUsedInTaskEvent(
+            statusId,
+            taskId
+        )
     )
 }
 

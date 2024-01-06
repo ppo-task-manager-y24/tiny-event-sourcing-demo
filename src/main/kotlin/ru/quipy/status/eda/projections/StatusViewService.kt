@@ -42,8 +42,10 @@ class StatusViewService(
     }
 
     override fun getStatus(statusId: UUID): StatusViewModel {
-        val status = statusRepository.findByIdOrNull(statusId)
-                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
+        val statuses = statusRepository.findAll()
+
+        val status = statuses.firstOrNull { it.statusId == statusId }
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
         if (status.isDeleted) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")

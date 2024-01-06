@@ -2,6 +2,7 @@ package ru.quipy.project.eda.api
 
 import ru.quipy.core.annotations.DomainEvent
 import ru.quipy.domain.Event
+import ru.quipy.task.eda.api.TaskAggregate
 import java.util.*
 
 const val PROJECT_CREATED_EVENT = "PROJECT_CREATED_EVENT"
@@ -12,6 +13,9 @@ const val TASK_CREATED_EVENT = "TASK_CREATED_EVENT"
 const val TASK_UPDATED_EVENT = "TASK_UPDATED_EVENT"
 const val TASK_NAME_CHANGED_EVENT = "TASK_NAME_CHANGED_EVENT"
 const val TASK_EXECUTOR_ADDED_EVENT = "TASK_EXECUTOR_ADDED_EVENT"
+
+const val STATUS_USED_IN_TASK_EVENT = "STATUS_USED_IN_TASK_EVENT"
+const val STATUS_REMOVED_FROM_TASK_EVENT = "STATUS_REMOVED_FROM_TASK_EVENT"
 
 // API
 @DomainEvent(name = PROJECT_CREATED_EVENT)
@@ -84,4 +88,24 @@ class TaskExecutorAddedEvent(
 ) : Event<ProjectAggregate>(
     name = TASK_EXECUTOR_ADDED_EVENT,
     createdAt = createdAt,
+)
+
+@DomainEvent(name = STATUS_USED_IN_TASK_EVENT)
+class StatusUsedInTaskEvent(
+    val statusId: UUID,
+    val taskId: UUID,
+    createdAt: Long = System.currentTimeMillis()
+): Event<ProjectAggregate>(
+    name = STATUS_USED_IN_TASK_EVENT,
+    createdAt = createdAt
+)
+
+@DomainEvent(name = STATUS_REMOVED_FROM_TASK_EVENT)
+class StatusRemovedFromTaskEvent(
+    val statusId: UUID,
+    val taskId: UUID,
+    createdAt: Long = System.currentTimeMillis()
+): Event<ProjectAggregate>(
+    name = STATUS_REMOVED_FROM_TASK_EVENT,
+    createdAt = createdAt
 )

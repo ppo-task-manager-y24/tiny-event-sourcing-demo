@@ -7,6 +7,8 @@ import ru.quipy.domain.Event
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.logic.TaskEntity
 import ru.quipy.project.eda.api.ProjectAggregate
+import ru.quipy.project.eda.api.ProjectCreatedEvent
+import ru.quipy.project.eda.api.TaskCreatedEvent
 import ru.quipy.project.eda.logic.addTaskExecutor
 import ru.quipy.project.eda.logic.createTask
 import ru.quipy.project.eda.logic.getTask
@@ -24,15 +26,19 @@ class TaskService(
         return projectEsService.getState(projectId)?.getTask(taskId)
     }
 
+    @Throws(IllegalStateException::class)
     fun createOne(data: TaskCreate): TaskEntity? {
-        val event = projectEsService.update(data.projectId) {
+        val events = projectEsService.updateSerial(data.projectId) {
             it.createTask(
                 data.id,
                 data.name,
                 data.description,
-                data.statusId)
+                data.statusId
+            )
         }
-        return getOne(data.projectId, event.taskId)
+        val firstEvent = events.first() as? TaskCreatedEvent ?: throw IllegalStateException()
+
+        return getOne(data.projectId, firstEvent.id)
     }
 
     fun rename(projectId: UUID, taskId: UUID, name: String) : TaskEntity? {
