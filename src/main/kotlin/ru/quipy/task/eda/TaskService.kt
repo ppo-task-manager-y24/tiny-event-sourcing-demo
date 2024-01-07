@@ -3,11 +3,9 @@ package ru.quipy.task.eda
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import ru.quipy.core.EventSourcingService
-import ru.quipy.domain.Event
-import ru.quipy.logic.ProjectAggregateState
-import ru.quipy.logic.TaskEntity
+import ru.quipy.project.eda.logic.ProjectAggregateState
+import ru.quipy.project.eda.logic.TaskEntity
 import ru.quipy.project.eda.api.ProjectAggregate
-import ru.quipy.project.eda.api.ProjectCreatedEvent
 import ru.quipy.project.eda.api.TaskCreatedEvent
 import ru.quipy.project.eda.logic.addTaskExecutor
 import ru.quipy.project.eda.logic.createTask

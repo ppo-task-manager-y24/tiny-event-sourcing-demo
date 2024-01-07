@@ -10,21 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.http.HttpStatus
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.web.server.ResponseStatusException
-import ru.quipy.domain.Event
-import ru.quipy.logic.TaskEntity
+import ru.quipy.project.eda.logic.TaskEntity
 import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel
 import ru.quipy.task.eda.TaskService
 import ru.quipy.task.dto.TaskCreate
-import ru.quipy.task.eda.api.TaskAggregate
-import ru.quipy.task.eda.api.TaskCreatedEvent
-import ru.quipy.task.eda.logic.TaskAggregateState
 import java.lang.NullPointerException
-import java.sql.Timestamp
 import java.util.*
 
 @SpringBootTest

@@ -5,10 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.core.EventSourcingServiceFactory
-import ru.quipy.logic.ProjectAggregateState
-import ru.quipy.project.ProjectService
+import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.eda.api.ProjectAggregate
-import ru.quipy.projections.project_view.ProjectViewSubscriber
 import ru.quipy.streams.AggregateEventStreamManager
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*

@@ -3,7 +3,7 @@
 //import org.springframework.web.bind.annotation.*
 //import ru.quipy.core.EventSourcingService
 //import ru.quipy.domain.Event
-//import ru.quipy.logic.ProjectAggregateState
+//import ru.quipy.project.eda.logic.ProjectAggregateState
 //import ru.quipy.task.eda.api.TaskAggregate
 //import ru.quipy.task.eda.api.TaskCreatedEvent
 //import ru.quipy.task.eda.api.TaskNameChangedEvent

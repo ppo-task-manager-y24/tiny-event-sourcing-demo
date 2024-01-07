@@ -1,6 +1,5 @@
 package ru.quipy.status.eda.logic
 
-import ru.quipy.domain.Event
 import ru.quipy.status.eda.api.*
 import java.util.*
 
@@ -9,7 +8,7 @@ fun StatusAggregateState.addStatus(
         statusName: String,
         statusColor: Int
 ): StatusAddedEvent {
-    if (statuses.containsKey(statusId)) {
+    if (statuses.containsKey(statusId) && !statuses[statusId]?.isDeleted()!!) {
         throw IllegalStateException("there is already status with such id: ${statusId} in project: ${getId()}")
     }
 
@@ -29,6 +28,10 @@ fun StatusAggregateState.create(
 
 @Throws(IllegalStateException::class)
 fun StatusAggregateState.delete(statusId: UUID): StatusDeletedEvent {
+    if (!statuses.containsKey(statusId)) {
+        throw IllegalStateException("there is no status with such id: ${statusId} in project: ${getId()}")
+    }
+
     if (statuses[statusId]?.usedTaskIds?.isNotEmpty() != false) {
         throw IllegalStateException("Unable to delete status – status ${this.getId()} is used in tasks: ${this.statuses[statusId]?.usedTaskIds}")
     }

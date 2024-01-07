@@ -1,8 +1,6 @@
 package ru.quipy.project.eda.logic
 
 import ru.quipy.domain.Event
-import ru.quipy.logic.ProjectAggregateState
-import ru.quipy.logic.TaskEntity
 import ru.quipy.project.eda.api.*
 import java.util.*
 
