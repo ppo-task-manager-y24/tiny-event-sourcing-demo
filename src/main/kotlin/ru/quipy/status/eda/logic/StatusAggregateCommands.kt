@@ -1,5 +1,6 @@
 package ru.quipy.status.eda.logic
 
+import ru.quipy.domain.Event
 import ru.quipy.status.eda.api.*
 import java.util.*
 
@@ -41,4 +42,24 @@ fun StatusAggregateState.statusUsedInTask(taskId: UUID, statusId: UUID): StatusU
 
 fun StatusAggregateState.statusRemovedInTask(taskId: UUID, statusId: UUID): StatusRemovedFromTaskEvent {
     return StatusRemovedFromTaskEvent(getId(), statusId, taskId)
+}
+
+fun StatusAggregateState.changeStatusForTask(taskId: UUID, newStatusId: UUID): StatusChangedInTaskEvent {
+    if (!statuses.containsKey(newStatusId)) {
+        throw IllegalStateException("Status with such id: $newStatusId has not yet been created. First create it")
+    }
+
+    val currentStatusId = statuses.toList().firstOrNull {
+        it.second.usedTaskIds.contains(taskId)
+    }?.first
+
+    if (currentStatusId == null) {
+        return StatusChangedInTaskEvent(getId(), newStatusId, taskId)
+    }
+
+    if (currentStatusId == newStatusId) {
+        throw IllegalStateException("Can't change to same status")
+    }
+
+    return StatusChangedInTaskEvent(getId(), newStatusId, taskId)
 }

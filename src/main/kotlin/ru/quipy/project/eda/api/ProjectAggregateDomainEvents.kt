@@ -16,6 +16,7 @@ const val TASK_EXECUTOR_ADDED_EVENT = "TASK_EXECUTOR_ADDED_EVENT"
 
 const val STATUS_USED_IN_TASK_EVENT = "STATUS_USED_IN_TASK_EVENT"
 const val STATUS_REMOVED_FROM_TASK_EVENT = "STATUS_REMOVED_FROM_TASK_EVENT"
+const val STATUS_CHANGED_IN_TASK_EVENT = "STATUS_CHANGED_IN_TASK_EVENT"
 
 // API
 @DomainEvent(name = PROJECT_CREATED_EVENT)
@@ -109,5 +110,16 @@ class StatusRemovedFromTaskEvent(
     createdAt: Long = System.currentTimeMillis()
 ): Event<ProjectAggregate>(
     name = STATUS_REMOVED_FROM_TASK_EVENT,
+    createdAt = createdAt
+)
+
+@DomainEvent(name = STATUS_CHANGED_IN_TASK_EVENT)
+class StatusChangedInTaskEvent(
+    val projectId: UUID,
+    val statusId: UUID,
+    val taskId: UUID,
+    createdAt: Long = System.currentTimeMillis()
+): Event<ProjectAggregate>(
+    name = STATUS_CHANGED_IN_TASK_EVENT,
     createdAt = createdAt
 )

@@ -10,12 +10,17 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.util.Assert
 import ru.quipy.core.EventSourcingService
+import ru.quipy.domain.Event
 import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.logic.create
 import ru.quipy.status.dto.StatusViewModel
 import ru.quipy.status.eda.api.StatusAggregate
+import ru.quipy.status.eda.api.StatusChangedInTaskEvent
+import ru.quipy.status.eda.api.StatusRemovedFromTaskEvent
+import ru.quipy.status.eda.api.StatusUsedInTaskEvent
 import ru.quipy.status.eda.logic.*
 import ru.quipy.status.eda.projections.status_view.StatusViewService
 import ru.quipy.task.dto.TaskCreate
@@ -27,10 +32,15 @@ import java.util.concurrent.TimeUnit
 class StatusTests {
     companion object {
         private val taskId = UUID.randomUUID()
-        private val statusId = UUID.randomUUID()
         private val projectId = UUID.randomUUID()
-        private const val STATUS_NAME = "myStatus"
+
+        private val statusId = UUID.randomUUID()
+        private const val STATUS_NAME = "firstStatus"
         private const val COLOR = 255
+
+        private val secondStatusId = UUID.randomUUID()
+        private const val SECOND_STATUS_NAME = "secondStatus"
+        private const val SECOND_COLOR = 128
     }
 
     @Autowired
@@ -70,6 +80,23 @@ class StatusTests {
 
         mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(statusId)), "snapshots")
         mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(projectId)), "snapshots")
+    }
+
+    @Test
+    fun defaultStatusInProject() {
+        val state = statusEsService.getState(projectId)!!
+
+        Assertions.assertNotNull(state)
+
+        val statuses = state.statuses.toList()
+        Assertions.assertEquals(statuses.count(), 1)
+
+        val status = statuses.first().second
+        Assertions.assertNotNull(status)
+
+
+        Assertions.assertEquals(status.statusName, StatusAggregateState.defaultStatusName)
+        Assertions.assertEquals(status.id, StatusAggregateState.defaultStatusId)
     }
 
     @Test
@@ -172,6 +199,77 @@ class StatusTests {
 
     }
 
+    @Test
+    fun changeToNotExistingStatus_Fails() {
+        createAndAssignStatusToTask()
+
+        Assertions.assertThrows(IllegalStateException::class.java) {
+            statusEsService.update(projectId) {
+                it.changeStatusForTask(taskId, UUID.randomUUID())
+            }
+        }
+    }
+
+    @Test
+    fun changeToExistingStatus_FirstTime_Succeeds() {
+        createAnotherStatus()
+
+        var event: StatusChangedInTaskEvent? = null
+
+        Assertions.assertDoesNotThrow {
+            event =  statusEsService.update(projectId) {
+                it.changeStatusForTask(taskId, secondStatusId)
+            }
+        }
+
+        Assertions.assertNotNull(event)
+        Assertions.assertEquals(event!!.statusId, secondStatusId)
+    }
+
+    @Test
+    fun changeToExistingStatus_Succeeds() {
+        createAndAssignStatusToTask()
+
+        statusEsService.update(projectId) {
+            it.changeStatusForTask(taskId, statusId)
+        }
+
+        createAnotherStatus()
+
+        var event: StatusChangedInTaskEvent? = null
+
+        Assertions.assertDoesNotThrow {
+            event =  statusEsService.update(projectId) {
+                it.changeStatusForTask(taskId, secondStatusId)
+            }
+        }
+
+        Assertions.assertNotNull(event)
+        Assertions.assertEquals(event!!.statusId, secondStatusId)
+    }
+
+    @Test
+    fun changeStatus_ProjectAggregateIsUpdated() {
+        createAndAssignStatusToTask()
+        createAnotherStatus()
+
+        statusEsService.update(projectId) {
+            it.changeStatusForTask(taskId, secondStatusId)
+        }
+
+        Awaitility
+            .await()
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                val task = taskEsService.getOne(projectId, taskId)
+                Assertions.assertNotNull(task)
+                Assertions.assertNotNull(task)
+
+                Assertions.assertEquals(task!!.statusId, secondStatusId)
+            }
+
+    }
+
     private fun createAndAssignStatusToTask() {
         statusEsService.update(projectId) {
             it.addStatus(statusId, STATUS_NAME, COLOR)
@@ -182,12 +280,18 @@ class StatusTests {
         }
 
         taskEsService.createOne(TaskCreate(
-            UUID.randomUUID(),
+            taskId,
             "taskName",
             "taskDescription",
             projectId,
             statusId
         ))
+    }
+
+    private fun createAnotherStatus() {
+        statusEsService.update(projectId) {
+            it.addStatus(secondStatusId, SECOND_STATUS_NAME, SECOND_COLOR)
+        }
     }
 
     private fun createStatus() {

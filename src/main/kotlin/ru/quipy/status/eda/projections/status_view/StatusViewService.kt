@@ -50,12 +50,6 @@ class StatusViewService(
     }
 
     override fun getStatus(projectId: UUID, statusId: UUID): StatusViewModel {
-//        val statuses = statusRepository.findAll().filter {
-//            projectId == it.projectId
-//        }
-
-//        val status = statuses.firstOrNull { it.statusId == statusId }
-//            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
 
         val status = statusRepository.findByIdOrNull(statusId) ?:
         throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist")
@@ -75,20 +69,21 @@ class StatusViewService(
         val models = listOf<StatusViewModel>()
 
         statuses.forEach {
-            models.plus(StatusViewModel(it.statusId, projectId, it.statusName, it.color))
+            if (!it.isDeleted) {
+                models.plus(StatusViewModel(it.statusId, projectId, it.statusName, it.color))
+            }
         }
 
         return models
     }
 
     override fun deleteStatus(projectId: UUID, statusId: UUID) {
-        val status = statusRepository
-            .findAll().filter {
-                it.projectId == projectId
-            }.firstOrNull {
-                it.statusId == statusId
-            }
+        val status = statusRepository.findByIdOrNull(statusId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
+
+        if (status.projectId != projectId) {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "status doesn't exist.")
+        }
 
         status.isDeleted = true
         statusRepository.save(status)

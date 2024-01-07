@@ -75,6 +75,15 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
     fun statusRemovedFromTaskEventApply(event: StatusRemovedFromTaskEvent) {
 
     }
+
+    @StateTransitionFunc
+    fun statusChangedInTaskEventApply(event: StatusChangedInTaskEvent) {
+        val entity = tasks[event.taskId]
+        val newEntity = entity?.copy(statusId = event.statusId)
+        if (newEntity != null) {
+            tasks[event.taskId] = newEntity
+        }
+    }
 }
 
 data class TaskEntity(

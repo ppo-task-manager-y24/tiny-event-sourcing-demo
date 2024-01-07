@@ -26,24 +26,6 @@ class ProjectEventsSubscriber(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(ProjectEventsSubscriber::class.java)
 
-//    @PostConstruct
-//    fun init() {
-//        subscriptionsManager.subscribe<ProjectAggregate>(this)
-//
-//        subscriptionsManager.createSubscriber(ProjectAggregate::class, "statuses::project-subscriber") {
-//            `when`(StatusUsedInTaskEvent::class) { event ->
-//                statusEsService.update(event.statusId) {
-//                    it.statusUsedInTask(event.taskId)
-//                }
-//            }
-//            `when`(StatusRemovedFromTaskEvent::class) { event ->
-//                statusEsService.update(event.statusId) {
-//                    it.statusRemovedInTask(event.taskId)
-//                }
-//            }
-//        }
-//    }
-
     @PostConstruct
     fun init() {
         subscriptionsManager.subscribe<ProjectAggregate>(this)

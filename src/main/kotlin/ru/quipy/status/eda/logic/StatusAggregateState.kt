@@ -47,6 +47,11 @@ class StatusAggregateState: AggregateState<UUID, StatusAggregate> {
         statuses[event.statusId]?.usedTaskIds?.remove(event.taskId)
     }
 
+    @StateTransitionFunc
+    fun statusChangedInTaskApply(event: StatusChangedInTaskEvent) {
+
+    }
+
     companion object {
         const val defaultStatusName = "DEFAULT"
         val defaultStatusId = UUID.randomUUID()
