@@ -1,5 +1,6 @@
 package ru.quipy
 
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -10,13 +11,19 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import ru.quipy.core.EventSourcingService
 import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel
 import ru.quipy.project.dto.TaskCreate
 import ru.quipy.project.eda.logic.TaskEntity
+import ru.quipy.user.UserService
+import ru.quipy.user.eda.api.UserAggregate
+import ru.quipy.user.eda.logic.UserAggregateState
+import ru.quipy.user.eda.logic.create
 import java.lang.NullPointerException
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest
 class TasksTests {
@@ -57,9 +64,21 @@ class TasksTests {
     @Autowired
     lateinit var projectEsService: ProjectService
 
+    @Autowired
+    lateinit var userService: EventSourcingService<UUID, UserAggregate, UserAggregateState>
+
     @BeforeEach
     fun cleanDatabase() {
         try {
+            mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(projectId)), "aggregate-project")
+            mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(projectId)), "snapshots")
+
+            mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(assigneeId)), "user-aggregate")
+            mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(assigneeId)), "snapshots")
+
+            mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(ownerId)), "user-aggregate")
+            mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(ownerId)), "snapshots")
+
             mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectId)),
                 ProjectModel::class.java)
             mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getTask(projectCreateModel.id, id)!!.id)),
@@ -193,8 +212,19 @@ class TasksTests {
                 addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
             },
             "user added")
+        userService.create {
+            it.create(assigneeId, "name", "realName", "pwd")
+        }
 
-        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+        Awaitility
+            .await()
+            .timeout(5, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+                }
+            }
 
         Assertions.assertDoesNotThrow( {
             taskEsService.addUserToTask(projectId, taskId!!, assigneeId)
@@ -232,15 +262,19 @@ class TasksTests {
 
         Assertions.assertNotNull(taskId)
 
-        Assertions.assertThrows(
-            IllegalArgumentException::class.java,
-            {
-                taskEsService.addUserToTask(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
-                addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
-            },
-            "user added")
+        userService.create {
+            it.create(assigneeId, "name", "realName", "pwd")
+        }
 
-        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+        Awaitility
+            .await()
+            .timeout(5, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+                }
+            }
 
         Assertions.assertThrows(
             IllegalArgumentException::class.java,
@@ -265,15 +299,19 @@ class TasksTests {
 
         Assertions.assertNotNull(taskId)
 
-        Assertions.assertThrows(
-            IllegalArgumentException::class.java,
-            {
-                taskEsService.addUserToTask(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
-                addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
-            },
-            "user added")
+        userService.create {
+            it.create(assigneeId, "name", "realName", "pwd")
+        }
 
-        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+        Awaitility
+            .await()
+            .timeout(5, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+                }
+            }
 
         Assertions.assertThrows(
             IllegalArgumentException::class.java,
@@ -284,5 +322,4 @@ class TasksTests {
                 addUserState = taskEsService.getTask(projectId, id)
             }, "added non existing user as task's executor")
     }
-
 }
