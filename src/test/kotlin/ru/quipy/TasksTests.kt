@@ -108,8 +108,25 @@ class TasksTests {
     }
 
     @Test
-    fun renameTask() {
+    fun createExistingTask() {
 
+        Assertions.assertDoesNotThrow( {
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+        }, "can't create new task")
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+            {
+                taskEsService.createTask(
+                    TaskCreate(UUID.randomUUID(), name, description, projectId, statusId)
+                )
+            }, "task created but task with such name already exist in the project."
+        )
+    }
+
+    @Test
+    fun renameTask() {
         Assertions.assertDoesNotThrow( {
             taskEsService.createTask(taskCreateModel)
             state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
@@ -135,6 +152,21 @@ class TasksTests {
                 "task project ids doesn't match") },
             Executable { Assertions.assertEquals(taskRenameState!!.statusId, taskCreateModel.statusId,
                 "task status ids doesn't match") }
+        )
+    }
+
+    @Test
+    fun renameNotExistingTask() {
+        Assertions.assertDoesNotThrow( {
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+        }, "can't create new task")
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+            {
+                taskEsService.renameTask(projectId, UUID.randomUUID(), newTaskName)
+            }, "rename task but it doesn't exist in the project."
         )
     }
 
@@ -167,7 +199,7 @@ class TasksTests {
         Assertions.assertDoesNotThrow( {
             taskEsService.addUserToTask(projectId, taskId!!, assigneeId)
             addUserState = taskEsService.getTask(projectId, taskId)
-        }, "can't rename task")
+        }, "can't add task's executor")
 
         Assertions.assertAll(
             Executable { Assertions.assertEquals(addUserState!!.name, taskCreateModel.name,
@@ -183,6 +215,74 @@ class TasksTests {
             Executable { Assertions.assertEquals(addUserState!!.statusId, taskCreateModel.statusId,
                 "task status ids doesn't match") }
         )
+    }
+
+    @Test
+    fun addNonExistingUserToTask() {
+        var state: TaskEntity? = null
+
+        Assertions.assertDoesNotThrow( {
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+        }, "can't create new task")
+
+        var addUserState: TaskEntity? = null
+
+        val taskId = state?.id
+
+        Assertions.assertNotNull(taskId)
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+            {
+                taskEsService.addUserToTask(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
+                addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+            },
+            "user added")
+
+        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+        {
+            taskEsService.addUserToTask(projectId, taskId!!, UUID.randomUUID())
+            addUserState = taskEsService.getTask(projectId, taskId)
+        }, "added non existing user as task's executor")
+    }
+
+    @Test
+    fun addExecutorToNonExistingTask() {
+        var state: TaskEntity? = null
+
+        Assertions.assertDoesNotThrow( {
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+        }, "can't create new task")
+
+        var addUserState: TaskEntity? = null
+
+        val taskId = state?.id
+
+        Assertions.assertNotNull(taskId)
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+            {
+                taskEsService.addUserToTask(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
+                addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
+            },
+            "user added")
+
+        projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
+
+        Assertions.assertThrows(
+            IllegalArgumentException::class.java,
+            {
+                val id = UUID.randomUUID()
+
+                taskEsService.addUserToTask(projectId, id, assigneeId)
+                addUserState = taskEsService.getTask(projectId, id)
+            }, "added non existing user as task's executor")
     }
 
 }

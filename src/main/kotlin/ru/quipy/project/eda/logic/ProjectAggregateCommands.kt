@@ -30,6 +30,10 @@ fun ProjectAggregateState.addUser(id: UUID): List<Event<ProjectAggregate>> {
 }
 
 fun ProjectAggregateState.createTask(taskId: UUID, name: String, description: String, statusId: UUID): List<Event<ProjectAggregate>> {
+    if (tasksNames.contains(name)) {
+        throw IllegalArgumentException("Task with name: $name already exists in project")
+    }
+
     return listOf(
         TaskCreatedEvent(
             taskId = taskId,

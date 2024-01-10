@@ -15,6 +15,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
     lateinit var owner: UUID
     var participants: MutableList<UUID> = mutableListOf()
     var tasks = mutableMapOf<UUID, TaskEntity>()
+    var tasksNames = mutableSetOf<String>()
 
     override fun getId() = projectId
 
@@ -46,6 +47,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
             event.taskDescription,
             event.statusId,
             event.projectId)
+        tasksNames.add(event.taskName)
         updatedAt = event.createdAt
     }
 
@@ -56,6 +58,7 @@ class ProjectAggregateState : AggregateState<UUID, ProjectAggregate> {
 
     @StateTransitionFunc
     fun taskNameChangedApply(event: TaskNameChangedEvent) {
+        tasksNames.remove(tasks[event.taskId]?.name)
         tasks[event.taskId]?.name  = event.taskName
         updatedAt = event.createdAt
     }
