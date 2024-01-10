@@ -38,7 +38,8 @@ class ProjectsTests {
             ownerId,
             createdAt,
             updatedAt,
-            tasks
+            tasks,
+            mutableListOf()
         )
 
         private const val title = "Project title"

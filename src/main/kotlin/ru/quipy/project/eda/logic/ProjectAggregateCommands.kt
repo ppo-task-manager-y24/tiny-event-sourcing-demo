@@ -63,11 +63,7 @@ fun ProjectAggregateState.renameTask(id: UUID, name: String): List<Event<Project
 }
 
 fun ProjectAggregateState.changeStatus(id: UUID, newStatusId: UUID): List<Event<ProjectAggregate>> {
-    val task = tasks[id]
-
-    if (task == null) {
-        throw IllegalArgumentException("Task with id: $id does not exist in project")
-    }
+    val task = tasks[id] ?: throw IllegalArgumentException("Task with id: $id does not exist in project")
 
     return ArrayList(
         listOf(
@@ -81,14 +77,13 @@ fun ProjectAggregateState.addTaskExecutor(taskId: UUID, userId: UUID): List<Even
     if (!participants.contains(userId)) {
         throw IllegalArgumentException("User with id '$userId' not in project")
     }
+    if (!tasks.contains(taskId)) {
+        throw IllegalArgumentException("task with id '$taskId' not in project")
+    }
     return ArrayList(
         listOf(
             TaskUpdatedEvent(taskId),
-            TaskExecutorAddedEvent(taskId, userId)
+            TaskExecutorAddedEvent(getId(), taskId, tasks[taskId]!!.name, userId)
         )
     )
-}
-
-fun ProjectAggregateState.getTask(taskId: UUID): TaskEntity? {
-    return tasks[taskId]
 }

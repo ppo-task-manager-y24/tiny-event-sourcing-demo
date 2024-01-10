@@ -1,4 +1,4 @@
-package ru.quipy.task.dto
+package ru.quipy.project.dto
 
 import org.springframework.data.annotation.Id
 import java.util.*

@@ -2,7 +2,6 @@ package ru.quipy.project.eda.api
 
 import ru.quipy.core.annotations.DomainEvent
 import ru.quipy.domain.Event
-import ru.quipy.task.eda.api.TaskAggregate
 import java.util.*
 
 const val PROJECT_CREATED_EVENT = "PROJECT_CREATED_EVENT"
@@ -83,7 +82,9 @@ class TaskNameChangedEvent(
 
 @DomainEvent(name = TASK_EXECUTOR_ADDED_EVENT)
 class TaskExecutorAddedEvent(
+    val projectId: UUID,
     val taskId: UUID,
+    val taskName: String,
     val executorId: UUID,
     createdAt: Long = System.currentTimeMillis(),
 ) : Event<ProjectAggregate>(
