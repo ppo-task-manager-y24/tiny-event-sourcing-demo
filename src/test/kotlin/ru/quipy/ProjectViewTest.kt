@@ -86,7 +86,7 @@ class ProjectViewTest {
         initUsers()
         initStatuses()
         initTasks()
-        Thread.sleep(5000)
+        Thread.sleep(2000)
     }
 
     @AfterEach
@@ -383,10 +383,6 @@ class ProjectViewTest {
                 ""
             )
         }
-//
-//        Awaitility
-//            .await()
-//            .pollDelay(1, TimeUnit.SECONDS)
 
         Awaitility
             .await()
