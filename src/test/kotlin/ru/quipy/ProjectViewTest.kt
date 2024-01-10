@@ -134,7 +134,14 @@ class ProjectViewTest {
         }
         users.add(id)
 
-        projectService.addUserToProject(projectId, users[0])
+        Awaitility
+            .await()
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectService.addUserToProject(projectId, users[0])
+                }
+            }
     }
 
     private fun initStatuses() {
@@ -376,12 +383,19 @@ class ProjectViewTest {
                 ""
             )
         }
+//
+//        Awaitility
+//            .await()
+//            .pollDelay(1, TimeUnit.SECONDS)
 
         Awaitility
             .await()
             .pollDelay(1, TimeUnit.SECONDS)
-
-        projectService.addUserToProject(projectId, userId1)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectService.addUserToProject(projectId, userId1)
+                }
+            }
 
         Awaitility
             .await()
@@ -394,11 +408,6 @@ class ProjectViewTest {
 
         val userId2 = UUID.randomUUID()
         val username2 = "UserAggrProjectAggrSync2"
-        projectService.addUserToProject(projectId, userId2)
-
-        Awaitility
-            .await()
-            .pollDelay(1, TimeUnit.SECONDS)
 
         userEsService.create {
             it.create(
@@ -408,6 +417,16 @@ class ProjectViewTest {
                 ""
             )
         }
+
+        Awaitility
+            .await()
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectService.addUserToProject(projectId, userId2)
+                }
+            }
+
 
         Awaitility
             .await()
