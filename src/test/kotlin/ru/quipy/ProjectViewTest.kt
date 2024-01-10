@@ -14,7 +14,6 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import ru.quipy.core.EventSourcingService
-import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.TaskCreate

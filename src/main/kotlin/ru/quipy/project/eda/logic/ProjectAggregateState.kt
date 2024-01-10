@@ -1,4 +1,4 @@
-package ru.quipy.logic
+package ru.quipy.project.eda.logic
 
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState

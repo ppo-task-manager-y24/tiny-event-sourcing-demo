@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import ru.quipy.domain.Event
-import ru.quipy.logic.ProjectAggregateState
+import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel

@@ -11,13 +11,12 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import ru.quipy.core.EventSourcingService
-import ru.quipy.logic.ProjectAggregateState
 import ru.quipy.project.ProjectService
+import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.logic.create
 import ru.quipy.status.dto.StatusViewModel
-import ru.quipy.status.eda.api.StatusAggregate
-import ru.quipy.status.eda.api.StatusChangedInTaskEvent
+import ru.quipy.status.eda.api.*
 import ru.quipy.status.eda.logic.*
 import ru.quipy.status.eda.projections.status_view.StatusViewService
 import ru.quipy.project.dto.TaskCreate
@@ -153,6 +152,36 @@ class StatusTests {
                     Executable { Assertions.assertEquals(storedStatus!!.color, COLOR,
                         "colors doesn't match.") }
                 )
+            }
+    }
+
+    @Test
+    fun deleteStatus_readFromProjection_Succeeds() {
+        statusEsService.update(projectId) {
+            it.addStatus(statusId, STATUS_NAME, COLOR)
+        }
+
+        statusEsService.update(projectId) {
+            it.delete(statusId)
+        }
+
+        Awaitility
+            .await()
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                var storedStatuses: List<StatusViewModel>? = null
+
+                Assertions.assertDoesNotThrow( {
+                    storedStatuses = statusViewService.getStatuses(projectId)
+                }, "status doesn't exist.")
+
+                Assertions.assertNotNull(storedStatuses)
+
+                val deletedStatus = storedStatuses!!.firstOrNull {
+                    it.statusId == statusId
+                }
+
+                Assertions.assertNull(deletedStatus)
             }
     }
 
