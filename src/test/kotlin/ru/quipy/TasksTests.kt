@@ -88,7 +88,7 @@ class TasksTests {
     }
 
     @Test
-    fun createNewTask() {
+    fun createNewTask_Succeeds() {
 
         Assertions.assertDoesNotThrow( {
             taskEsService.createTask(taskCreateModel)
@@ -108,7 +108,7 @@ class TasksTests {
     }
 
     @Test
-    fun createExistingTask() {
+    fun createExistingTask_Fails() {
 
         Assertions.assertDoesNotThrow( {
             taskEsService.createTask(taskCreateModel)
@@ -126,7 +126,7 @@ class TasksTests {
     }
 
     @Test
-    fun renameTask() {
+    fun renameTask_Succeeds() {
         Assertions.assertDoesNotThrow( {
             taskEsService.createTask(taskCreateModel)
             state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
@@ -156,7 +156,7 @@ class TasksTests {
     }
 
     @Test
-    fun renameNotExistingTask() {
+    fun renameNotExistingTask_Fails() {
         Assertions.assertDoesNotThrow( {
             taskEsService.createTask(taskCreateModel)
             state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
@@ -171,7 +171,7 @@ class TasksTests {
     }
 
     @Test
-    fun addUser() {
+    fun addUser_Succeeds() {
 
         var state: TaskEntity? = null
 
@@ -218,7 +218,7 @@ class TasksTests {
     }
 
     @Test
-    fun addNonExistingUserToTask() {
+    fun addNonExistingUserToTask_Fails() {
         var state: TaskEntity? = null
 
         Assertions.assertDoesNotThrow( {
@@ -251,7 +251,7 @@ class TasksTests {
     }
 
     @Test
-    fun addExecutorToNonExistingTask() {
+    fun addExecutorToNonExistingTask_Fails() {
         var state: TaskEntity? = null
 
         Assertions.assertDoesNotThrow( {
