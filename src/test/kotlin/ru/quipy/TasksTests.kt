@@ -10,12 +10,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import ru.quipy.project.eda.logic.TaskEntity
 import ru.quipy.project.ProjectService
 import ru.quipy.project.dto.ProjectCreate
 import ru.quipy.project.dto.ProjectModel
-import ru.quipy.task.eda.TaskService
-import ru.quipy.task.dto.TaskCreate
+import ru.quipy.project.dto.TaskCreate
+import ru.quipy.project.eda.logic.TaskEntity
 import java.lang.NullPointerException
 import java.util.*
 
@@ -50,7 +49,7 @@ class TasksTests {
     }
 
     @Autowired
-    lateinit var taskEsService: TaskService
+    lateinit var taskEsService: ProjectService
 
     @Autowired
     lateinit var mongoTemplate: MongoTemplate
@@ -63,7 +62,7 @@ class TasksTests {
         try {
             mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectId)),
                 ProjectModel::class.java)
-            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getOne(projectCreateModel.id, id)!!.id)),
+            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getTask(projectCreateModel.id, id)!!.id)),
                 ProjectModel::class.java)
         } catch (e: NullPointerException) {
 
@@ -79,7 +78,7 @@ class TasksTests {
         try {
             mongoTemplate.remove(Query.query(Criteria.where("projectId").`is`(projectId)),
                 ProjectModel::class.java)
-            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getOne(projectCreateModel.id, id)!!.id)),
+            mongoTemplate.remove(Query.query(Criteria.where("taskId").`is`(taskEsService.getTask(projectCreateModel.id, id)!!.id)),
                 ProjectModel::class.java)
         } catch (e: NullPointerException) {
             return
@@ -92,7 +91,8 @@ class TasksTests {
     fun createNewTask() {
 
         Assertions.assertDoesNotThrow( {
-            state = taskEsService.createOne(taskCreateModel)
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
         }, "can't create new task")
 
         Assertions.assertAll(
@@ -111,7 +111,8 @@ class TasksTests {
     fun renameTask() {
 
         Assertions.assertDoesNotThrow( {
-            state = taskEsService.createOne(taskCreateModel)
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
         }, "can't create new task")
 
         var taskRenameState: TaskEntity? = null
@@ -121,7 +122,8 @@ class TasksTests {
         Assertions.assertNotNull(taskId)
 
         Assertions.assertDoesNotThrow( {
-            taskRenameState = taskEsService.rename(projectId, taskId!!, newTaskName)
+            taskEsService.renameTask(projectId, taskId!!, newTaskName)
+            taskRenameState = taskEsService.getTask(projectId, taskId)
         }, "can't rename task")
 
         Assertions.assertAll(
@@ -142,7 +144,8 @@ class TasksTests {
         var state: TaskEntity? = null
 
         Assertions.assertDoesNotThrow( {
-            state = taskEsService.createOne(taskCreateModel)
+            taskEsService.createTask(taskCreateModel)
+            state = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
         }, "can't create new task")
 
         var addUserState: TaskEntity? = null
@@ -154,14 +157,16 @@ class TasksTests {
         Assertions.assertThrows(
             IllegalArgumentException::class.java,
             {
-                addUserState = taskEsService.addUser(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
+                taskEsService.addUserToTask(taskCreateModel.projectId, taskCreateModel.id, assigneeId)
+                addUserState = taskEsService.getTask(taskCreateModel.projectId, taskCreateModel.id)
             },
             "user added")
 
         projectEsService.addUserToProject(taskCreateModel.projectId, assigneeId)
 
         Assertions.assertDoesNotThrow( {
-            addUserState = taskEsService.addUser(projectId, taskId!!, assigneeId)
+            taskEsService.addUserToTask(projectId, taskId!!, assigneeId)
+            addUserState = taskEsService.getTask(projectId, taskId)
         }, "can't rename task")
 
         Assertions.assertAll(

@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import ru.quipy.core.EventSourcingService
+import ru.quipy.project.ProjectService
 import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.logic.create
@@ -18,8 +19,7 @@ import ru.quipy.status.dto.StatusViewModel
 import ru.quipy.status.eda.api.*
 import ru.quipy.status.eda.logic.*
 import ru.quipy.status.eda.projections.status_view.StatusViewService
-import ru.quipy.task.dto.TaskCreate
-import ru.quipy.task.eda.TaskService
+import ru.quipy.project.dto.TaskCreate
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -45,7 +45,7 @@ class StatusTests {
     private lateinit var statusViewService: StatusViewService
 
     @Autowired
-    private lateinit var taskEsService: TaskService
+    private lateinit var taskEsService: ProjectService
 
     @Autowired
     private lateinit var projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
@@ -286,7 +286,7 @@ class StatusTests {
             .await()
             .pollDelay(1, TimeUnit.SECONDS)
             .untilAsserted {
-                val task = taskEsService.getOne(projectId, taskId)
+                val task = taskEsService.getTask(projectId, taskId)
                 Assertions.assertNotNull(task)
                 Assertions.assertNotNull(task)
 
@@ -304,13 +304,15 @@ class StatusTests {
             it.create(projectId, "projectTitle", UUID.randomUUID())
         }
 
-        taskEsService.createOne(TaskCreate(
+        taskEsService.createTask(
+            TaskCreate(
             taskId,
             "taskName",
             "taskDescription",
             projectId,
             statusId
-        ))
+        )
+        )
     }
 
     private fun createAnotherStatus() {

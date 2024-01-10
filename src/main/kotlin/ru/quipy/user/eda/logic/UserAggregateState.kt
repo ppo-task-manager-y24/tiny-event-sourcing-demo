@@ -2,9 +2,6 @@ package ru.quipy.user.eda.logic
 
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
-import ru.quipy.project.eda.api.ProjectParticipantAddedEvent
-import ru.quipy.task.eda.api.TaskExecutorAddedEvent
-import ru.quipy.user.dto.UserModel
 import ru.quipy.user.eda.api.UserAggregate
 import ru.quipy.user.eda.api.UserCreatedEvent
 

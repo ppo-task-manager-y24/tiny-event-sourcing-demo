@@ -5,9 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.api.ProjectParticipantAddedEvent
+import ru.quipy.project.eda.api.TaskExecutorAddedEvent
 import ru.quipy.streams.AggregateSubscriptionsManager
-import ru.quipy.task.eda.api.TaskAggregate
-import ru.quipy.task.eda.api.TaskExecutorAddedEvent
 import ru.quipy.user.UserService
 import ru.quipy.user.dto.UserRegister
 import ru.quipy.user.eda.api.UserAggregate
@@ -50,7 +49,7 @@ class UserEventSubscriber {
             }
         }
 
-        subscriptionsManager.createSubscriber(TaskAggregate::class, "task-sub") {
+        subscriptionsManager.createSubscriber(ProjectAggregate::class, "task-sub") {
 
 
             `when`(TaskExecutorAddedEvent::class) { event ->

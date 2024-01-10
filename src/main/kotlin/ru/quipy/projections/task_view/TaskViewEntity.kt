@@ -2,10 +2,10 @@ package ru.quipy.projections.task_view
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import ru.quipy.project.dto.ProjectCreate
-import ru.quipy.project.dto.ProjectModel
-import ru.quipy.task.dto.TaskCreate
-import ru.quipy.task.dto.TaskModel
+import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.stereotype.Repository
+import ru.quipy.project.dto.TaskCreate
+import ru.quipy.project.dto.TaskModel
 import java.util.*
 
 @Document("project")
@@ -41,3 +41,7 @@ fun TaskModel.toEntity(): TaskViewEntity =
                 createdAt = this.createdAt,
                 updatedAt = this.updatedAt
         )
+
+@Repository
+interface TaskViewRepository : MongoRepository<TaskViewEntity, UUID> {
+}

@@ -14,14 +14,14 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import ru.quipy.core.EventSourcingService
+import ru.quipy.project.ProjectService
+import ru.quipy.project.dto.TaskCreate
 import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.logic.create
 import ru.quipy.status.eda.api.*
 import ru.quipy.status.eda.logic.*
 import ru.quipy.streams.AggregateSubscriptionsManager
-import ru.quipy.task.dto.TaskCreate
-import ru.quipy.task.eda.TaskService
 import java.lang.Long.min
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -54,7 +54,7 @@ class StatusStressTestsSucceeds {
     private lateinit var projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>
 
     @Autowired
-    private lateinit var taskEsService: TaskService
+    private lateinit var taskEsService: ProjectService
 
     @Autowired
     lateinit var mongoTemplate: MongoTemplate
@@ -128,7 +128,7 @@ class StatusStressTestsSucceeds {
                 Assertions.assertEquals(STATUSES_COUNT, statusAddedCounter.get())
                 Assertions.assertEquals(STATUSES_COUNT, statusChangedCounter.get())
 
-                val task = taskEsService.getOne(projectId, taskId)
+                val task = taskEsService.getTask(projectId, taskId)
                 Assertions.assertNotNull(task)
                 Assertions.assertNotNull(task)
 
@@ -155,7 +155,7 @@ class StatusStressTestsSucceeds {
             it.create(projectId, "projectTitle", UUID.randomUUID())
         }
 
-        taskEsService.createOne(
+        taskEsService.createTask(
             TaskCreate(
                 taskId,
                 "taskName",
