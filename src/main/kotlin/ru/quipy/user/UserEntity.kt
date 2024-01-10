@@ -7,6 +7,7 @@ import java.util.UUID
 @Document("users")
 data class UserEntity(
     @Id
+    var id: UUID,
     var userId: UUID?,
     var username: String,
     var realName: String,

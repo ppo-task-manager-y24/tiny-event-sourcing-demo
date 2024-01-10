@@ -19,6 +19,9 @@ import java.util.*
 interface UserService {
     fun createOne(data: UserRegister, userId: UUID): UserModel
     fun checkAvailableUsername(username: String)
+
+    @Throws(ResponseStatusException::class)
+    fun getOne(userId: UUID): UserEntity
     fun getOneByUsername(username: String): UserModel
     fun logIn(data: UserLogin): UserModel
     fun addProject(userId: UUID, projectId: UUID): UserModel
@@ -36,6 +39,7 @@ class UserServiceImpl(
         checkAvailableUsername(data.username)
         val dataEntity = data.toEntity()
         dataEntity.userId = userId
+        dataEntity.id = userId
         val userEntity = userRepository.save(dataEntity)
         return userEntity.toModel()
     }
@@ -49,7 +53,9 @@ class UserServiceImpl(
         }
         if (foundUser != null) throw ResponseStatusException(HttpStatus.CONFLICT, "user already exists")
     }
-    fun getOne(userId: UUID): UserEntity {
+
+    @Throws(ResponseStatusException::class)
+    override fun getOne(userId: UUID): UserEntity {
         return this.userRepository.findByIdOrNull(userId)
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "user not found")
     }
@@ -83,6 +89,7 @@ class UserServiceImpl(
 
     fun UserRegister.toEntity(): UserEntity =
             UserEntity(
+                    id = UUID.randomUUID(),
                     userId = null,
                     username = this.username,
                     realName = this.realName,

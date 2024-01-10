@@ -1,4 +1,6 @@
 package ru.quipy
+import com.fasterxml.jackson.databind.jsontype.impl.AsExistingPropertyTypeSerializer
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -8,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.web.server.ResponseStatusException
+import ru.quipy.core.EventSourcingService
 import ru.quipy.domain.Event
 import ru.quipy.project.eda.logic.ProjectAggregateState
 import ru.quipy.project.ProjectService
@@ -17,13 +21,21 @@ import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.api.ProjectCreatedEvent
 import ru.quipy.project.eda.api.ProjectParticipantAddedEvent
 import ru.quipy.project.eda.api.ProjectUpdatedEvent
+import ru.quipy.user.UserService
+import ru.quipy.user.dto.UserRegister
+import ru.quipy.user.eda.api.UserAggregate
+import ru.quipy.user.eda.logic.UserAggregateState
+import ru.quipy.user.eda.logic.create
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @SpringBootTest
 class ProjectsTests {
     companion object {
         private val id = UUID.randomUUID()
         private val participants = MutableList(2) { UUID.randomUUID()!! }
+
+        private val nonExistantParticipant = UUID.randomUUID()
 
         private val tasks = MutableList(2) { UUID.randomUUID()!! }
         private const val name = "projectName"
@@ -53,6 +65,9 @@ class ProjectsTests {
 
     @Autowired
     lateinit var projectEsService: ProjectService
+
+    @Autowired
+    lateinit var userService: EventSourcingService<UUID, UserAggregate, UserAggregateState>
 
     @Autowired
     lateinit var mongoTemplate: MongoTemplate
@@ -103,9 +118,16 @@ class ProjectsTests {
 
         var events: List<Event<ProjectAggregate>>? = null
 
-        Assertions.assertDoesNotThrow( {
-            events = projectEsService.addUserToProject(id, participants[0])
-        }, "can't add user")
+        Awaitility
+            .await()
+            .timeout(3, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow({
+                    events = projectEsService.addUserToProject(id, participants[0])
+                }, "can't add user")
+            }
+
 
         Assertions.assertEquals(2, events!!.count(), "wrong number of events produced")
 
@@ -131,21 +153,45 @@ class ProjectsTests {
     fun addSameUserTwice_Fails() {
         setUpSut()
 
-        Assertions.assertDoesNotThrow {
-            projectEsService.addUserToProject(id, participants[0])
-        }
+        Awaitility
+            .await()
+            .timeout(5, TimeUnit.SECONDS)
+            .pollDelay(1, TimeUnit.SECONDS)
+            .untilAsserted {
+                Assertions.assertDoesNotThrow {
+                    projectEsService.addUserToProject(id, participants[0])
+                }
+            }
 
         Assertions.assertThrows(IllegalArgumentException::class.java) {
             projectEsService.addUserToProject(id, participants[0])
         }
     }
 
+    @Test
+    fun addNotExistingUserToProject_Fails() {
+        setUpSut()
+
+        Assertions.assertThrows(ResponseStatusException::class.java) {
+            projectEsService.addUserToProject(id, nonExistantParticipant)
+        }
+    }
+
     private fun setUpSut() {
+        Assertions.assertDoesNotThrow {
+            userService.create {
+                it.create(participants[0], "name", "pwd", "realName")
+            }
+        }
+
         Assertions.assertDoesNotThrow({ projectEsService.createProject(projectCreateModel) }, "can't create new project")
     }
 
     private fun cleanDatabase() {
         mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(id)), "aggregate-project")
         mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(id)), "snapshots")
+
+        mongoTemplate.remove(Query.query(Criteria.where("aggregateId").`is`(participants[0])), "user-aggregate")
+        mongoTemplate.remove(Query.query(Criteria.where("_id").`is`(participants[0])), "snapshots")
     }
 }

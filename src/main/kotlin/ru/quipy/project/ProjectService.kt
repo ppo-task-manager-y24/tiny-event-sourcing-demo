@@ -1,5 +1,6 @@
 package ru.quipy.project
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import ru.quipy.core.EventSourcingService
 import ru.quipy.domain.Event
@@ -8,11 +9,15 @@ import ru.quipy.project.dto.TaskCreate
 import ru.quipy.project.eda.api.ProjectAggregate
 import ru.quipy.project.eda.api.ProjectCreatedEvent
 import ru.quipy.project.eda.logic.*
+import ru.quipy.user.UserService
 import java.util.*
 
 @Service
 class ProjectService(
     private val projectEsService: EventSourcingService<UUID, ProjectAggregate, ProjectAggregateState>) {
+
+    @Autowired
+    private lateinit var userService: UserService
 
     // test only
     fun state(id: UUID): ProjectAggregateState? {
@@ -31,6 +36,8 @@ class ProjectService(
 
     @Throws(IllegalArgumentException::class)
     fun addUserToProject(projectId: UUID, userId: UUID) : List<Event<ProjectAggregate>> {
+        val state = userService.getOne(userId)
+
         return projectEsService.updateSerial(projectId) {
             it.addUser(userId)
         }
